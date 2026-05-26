@@ -1,0 +1,276 @@
+generator client {
+  provider = "prisma-client-js"
+  // output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ========================
+// ГОРОДА
+// ========================
+model City {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  region    String?  // опционально: регион/республика
+  createdAt DateTime @default(now())
+  
+  users     User[]    // жители города
+  requests  Request[] // заявки в городе
+  
+  @@index([name])
+}
+
+// ========================
+// ПОЛЬЗОВАТЕЛИ (обновлённый)
+// ========================
+model User {
+  id           String   @id @default(cuid())
+  phone        String   @unique
+  email          String?   @unique
+  emailVerified  Boolean   @default(false)
+  passwordHash String
+  name         String
+  avatar       String?
+  description  String?
+  cityId       String   // обязательно! город пользователя
+  role          String   @default("USER") // USER, ADMIN, SUPER_ADMIN
+  isBlocked     Boolean  @default(false)
+  blockedBy     String?  // ID админа, кто заблокировал
+  blockedReason String?  // причина блокировки
+  blockedUntil  DateTime? // до какой даты блокировка (null = бессрочно)
+  bannedAt      DateTime? // дата блокировки
+  rating      Float    @default(0)  // средний рейтинг
+  sessionVersion Int @default(0) // для выхода со всех устройств
+  reviewsFrom Review[] @relation("fromUserReviews")
+  reviewsTo   Review[] @relation("toUserReviews")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Связи
+  city      City      @relation(fields: [cityId], references: [id])
+  requests  Request[]
+  offers    Offer[]
+  favorites Favorite[]
+  complaints  Complaint[]
+  dailyLimits UserDailyLimit[]
+  cityRequests CityRequest[]
+  emailVerificationTokens EmailVerificationToken[]
+  passwordResetTokens     PasswordResetToken[]
+
+  @@index([cityId])
+}
+
+model EmailVerificationToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([token])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  userId    String
+  token     String   @unique
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([token])
+  @@index([expiresAt])
+}
+
+// ТАБЛИЦА ДЛЯ ЛИМИТОВ
+model UserDailyLimit {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // "request" или "offer"
+  date       DateTime // дата в UTC (только дата, без времени)
+  count      Int      @default(0)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, action, date])
+  @@index([userId, date])
+}
+
+// Добавление города
+model CityRequest {
+  id        String   @id @default(cuid())
+  cityName  String
+  userId    String
+  status    String   @default("pending") // pending, approved, rejected
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@unique([userId, cityName])
+  @@index([cityName])
+  @@index([createdAt])
+}
+
+model AdminLog {
+  id          String   @id @default(cuid())
+  adminId     String   // ID администратора, который совершил действие
+  adminName   String   // Имя администратора
+  adminRole   String   // ADMIN или SUPER_ADMIN
+  action      String   // Тип действия (ban_user, unban_user, delete_request, delete_offer, resolve_complaint, change_role)
+  targetType  String   // user, request, offer, complaint
+  targetId    String   // ID объекта
+  targetName  String?  // Название/имя объекта
+  details     String?  // Дополнительные детали (причина, старые/новые значения)
+  ipAddress   String?  // IP-адрес администратора
+  userAgent   String?  // Браузер/устройство
+  createdAt   DateTime @default(now())
+
+  @@index([adminId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// ========================
+// ИЗБРАННОЕ
+// ========================
+model Favorite {
+  id        String   @id @default(cuid())
+  userId    String
+  requestId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, requestId])
+  @@index([userId])
+  @@index([requestId])
+}
+
+// ========================
+// ЖАЛОБЫ
+// ========================
+model Complaint {
+  id          String   @id @default(cuid())
+  userId      String   // кто пожаловался
+  targetType  String   // "request", "offer", "user"
+  targetId    String   // ID заявки, отклика или пользователя
+  reason      String   // причина жалобы
+  description String?  // дополнительное описание
+  status      String   @default("pending") // pending, reviewed, dismissed, banned
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@index([targetType, targetId])
+  @@index([status])
+}
+
+// ========================
+// ЗАЯВКИ (обновлённый)
+// ========================
+model Request {
+  id          String   @id @default(cuid())
+  title       String
+  description String
+  address     String
+  budget      Int?
+  deadline    Int
+  status      String   @default("active")
+  authorId    String
+  cityId      String   // город, где нужна помощь (по умолчанию = город автора)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Связи
+  author      User     @relation(fields: [authorId], references: [id])
+  city        City     @relation(fields: [cityId], references: [id])
+  offers      Offer[]
+  favorites Favorite[]
+  reviews     Review[]
+
+  @@index([status])
+  @@index([authorId])
+  @@index([cityId])
+  @@index([cityId, status]) // для быстрой фильтрации по городу+статусу
+}
+
+// ========================
+// ОТКЛИКИ (OFFERS)
+// ========================
+model Offer {
+  id          String   @id @default(cuid())
+  comment     String   // комментарий исполнителя
+  status      String   @default("pending") // pending, approved, rejected, completed
+  requestId   String
+  userId      String   // кто откликнулся (исполнитель)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Связи
+  request Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  user    User   @relation(fields: [userId], references: [id])
+
+  @@unique([requestId, userId]) // один пользователь — один отклик на заявку
+  @@index([status])
+  @@index([requestId])
+}
+
+// ========================
+// УВЕДОМЛЕНИЯ (ДЛЯ КОЛОКОЛЬЧИКА)
+// ========================
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String   // кому уведомление
+  type      String   // new_offer, offer_approved, request_completed
+  title     String   // короткий заголовок
+  message   String   // текст
+  isRead    Boolean  @default(false)
+  link      String?  // ссылка на заявку / отклик
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([isRead])
+}
+
+// Оценки
+model Review {
+  id          String   @id @default(cuid())
+  fromUserId  String   // кто оставил
+  toUserId    String   // кому оставили
+  requestId   String   // по какой заявке
+  rating      Int      // 1-5
+  comment     String?
+  createdAt   DateTime @default(now())
+
+  fromUser User @relation(fields: [fromUserId], references: [id], name: "fromUserReviews")
+  toUser   User @relation(fields: [toUserId], references: [id], name: "toUserReviews")
+  request  Request @relation(fields: [requestId], references: [id])
+
+  @@unique([requestId, fromUserId])
+  @@index([toUserId])
+  @@index([rating])
+}
+
+// РЕКЛАМА
+model AdvertisingRequest {
+  id        String   @id @default(cuid())
+  name      String
+  email     String
+  company   String?
+  message   String
+  status    String   @default("new") // new, contacted, rejected
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

@@ -1,0 +1,671 @@
+// Герой секция
+.hero {
+  padding: 4rem 1rem;
+  background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+
+  @media (min-width: 768px) {
+    padding: 6rem 2rem;
+  }
+}
+
+.heroContainer {
+  max-width: 1024px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.title {
+  font-family: var(--font-montserrat), sans-serif;
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+
+  span {
+    color: #2563eb;
+  }
+
+  @media (min-width: 768px) {
+    font-size: 3.5rem;
+  }
+
+  @media (min-width: 1024px) {
+    font-size: 4rem;
+  }
+}
+
+.subtitle {
+  font-size: 1.125rem;
+  color: #6b7280;
+  max-width: 640px;
+  margin: 0 auto 2rem;
+  line-height: 1.6;
+
+  @media (min-width: 768px) {
+    font-size: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+}
+
+.buttons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-direction: column;
+  align-items: center;
+
+  @media (min-width: 480px) {
+    flex-direction: row;
+  }
+}
+
+.btnPrimary {
+  padding: 0.75rem 2rem;
+  background: #2563eb;
+  color: white;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+  border: none;
+
+  &:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+  }
+
+  @media (min-width: 480px) {
+    width: auto;
+  }
+}
+
+.btnSecondary {
+  padding: 0.75rem 2rem;
+  background: transparent;
+  color: #111827;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.75rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+  cursor: pointer;
+
+  &:hover {
+    border-color: #2563eb;
+    color: #2563eb;
+    transform: translateY(-2px);
+  }
+
+  @media (min-width: 480px) {
+    width: auto;
+  }
+}
+
+// Город секция
+.citySection {
+  padding: 3rem 1rem;
+  background: #f9fafb;
+
+  @media (min-width: 768px) {
+    padding: 4rem 2rem;
+  }
+}
+
+.cityCard {
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 2rem;
+  background: white;
+  border-radius: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e5e7eb;
+
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0 1rem;
+
+    @media (min-width: 768px) {
+      font-size: 1.875rem;
+    }
+  }
+
+  p {
+    color: #6b7280;
+    line-height: 1.6;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.cityIcon {
+  font-size: 2.5rem;
+}
+
+.cityList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+
+  span {
+    padding: 0.25rem 1rem;
+    background: #f3f4f6;
+    border-radius: 9999px;
+    font-size: 0.875rem;
+    color: #374151;
+
+    &:first-child {
+      background: #2563eb;
+      color: white;
+    }
+  }
+}
+
+// Общие секции
+.section {
+  padding: 4rem 1rem;
+
+  @media (min-width: 768px) {
+    padding: 5rem 2rem;
+  }
+}
+
+.sectionAlt {
+  background: #f9fafb;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+}
+
+.badge {
+  display: inline-block;
+  padding: 0.25rem 0.75rem;
+  background: #e0e7ff;
+  color: #2563eb;
+  border-radius: 9999px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.sectionTitle {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  line-height: 1.3;
+
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+  }
+}
+
+.sectionText {
+  color: #6b7280;
+  line-height: 1.6;
+  margin-bottom: 1.5rem;
+}
+
+.list {
+  list-style: none;
+  padding: 0;
+
+  li {
+    margin-bottom: 0.5rem;
+    color: #374151;
+  }
+}
+
+.grid2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 3rem;
+  align-items: center;
+
+  @media (min-width: 768px) {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.imagePlaceholder {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.iconBox {
+  width: 120px;
+  height: 120px;
+  background: #e0e7ff;
+  border-radius: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+}
+
+// Примеры
+.examples {
+  padding: 4rem 1rem;
+  background: white;
+
+  @media (min-width: 768px) {
+    padding: 5rem 2rem;
+  }
+}
+
+.examplesTitle {
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+    margin-bottom: 4rem;
+  }
+}
+
+.examplesGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.exampleCard {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+  }
+
+  p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+.exampleIcon {
+  font-size: 2.5rem;
+}
+
+// 3 шага
+.steps {
+  padding: 4rem 1rem;
+  background: #f9fafb;
+
+  @media (min-width: 768px) {
+    padding: 5rem 2rem;
+  }
+}
+
+.stepsTitle {
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+    margin-bottom: 4rem;
+  }
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2.5rem;
+  }
+}
+
+.card {
+  text-align: center;
+  padding: 2rem;
+  background: #ffffff;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+    border-color: #2563eb;
+  }
+}
+
+.cardNumber {
+  width: 48px;
+  height: 48px;
+  background: #2563eb;
+  color: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0 auto 1rem;
+}
+
+.cardTitle {
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.cardText {
+  color: #6b7280;
+  font-size: 0.875rem;
+  line-height: 1.6;
+}
+
+// Безопасность
+.sectionSecurity {
+  padding: 4rem 1rem;
+  background: white;
+
+  @media (min-width: 768px) {
+    padding: 5rem 2rem;
+  }
+}
+
+.securityTitle {
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+
+  @media (min-width: 768px) {
+    font-size: 2.25rem;
+    margin-bottom: 4rem;
+  }
+}
+
+.securityGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+
+  @media (min-width: 640px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2rem;
+  }
+}
+
+.securityCard {
+  text-align: center;
+  padding: 1.5rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  transition: all 0.3s;
+
+  &:hover {
+    transform: translateY(-4px);
+  }
+
+  h3 {
+    font-size: 1rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+  }
+
+  p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+.securityIcon {
+  font-size: 2rem;
+}
+
+// Преимущества
+.sectionBenefits {
+  padding: 4rem 1rem;
+  background: #f9fafb;
+
+  @media (min-width: 768px) {
+    padding: 5rem 2rem;
+  }
+}
+
+.benefitsTitle {
+  text-align: center;
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin-bottom: 3rem;
+
+  @media (min-width: 768px) {
+    font-size: 2rem;
+    margin-bottom: 4rem;
+  }
+}
+
+.benefitsGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+.benefitCard {
+  text-align: center;
+  padding: 1.5rem;
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+
+  h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin: 1rem 0 0.5rem;
+  }
+
+  p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+}
+
+.benefitIcon {
+  font-size: 2.5rem;
+}
+
+// CTA
+.cta {
+  padding: 5rem 1rem;
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  text-align: center;
+}
+
+.ctaContainer {
+  max-width: 800px;
+  margin: 0 auto;
+
+  h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+
+    @media (min-width: 768px) {
+      font-size: 2.5rem;
+    }
+  }
+
+  p {
+    font-size: 1.125rem;
+    margin-bottom: 2rem;
+    opacity: 0.95;
+  }
+}
+
+.ctaButtons {
+  display: flex;
+  gap: 1rem;
+  justify-content: center;
+  flex-wrap: wrap;
+
+  .btnPrimary {
+    background: white;
+    color: #2563eb;
+
+    &:hover {
+      background: #f3f4f6;
+      transform: translateY(-2px);
+    }
+  }
+
+  .btnSecondary {
+    background: transparent;
+    border: 1px solid white;
+    color: white;
+
+    &:hover {
+      background: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+    }
+  }
+}
+
+.cityRequestSection {
+  padding: 3rem 1rem;
+  background: white;
+  border-top: 1px solid #e5e7eb;
+}
+
+.cityRequestCard {
+  max-width: 600px;
+  margin: 0 auto;
+  text-align: center;
+  padding: 2rem;
+  background: #f9fafb;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+
+  h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+}
+
+.cityRequestForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  
+  @media (min-width: 480px) {
+    flex-direction: row;
+  }
+}
+
+.cityRequestInput {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+
+  &:disabled {
+    background: #f3f4f6;
+  }
+}
+
+.cityRequestBtn {
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+
+  &:hover:not(:disabled) {
+    background: #1d4ed8;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.cityRequestLoginBtn {
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.875rem;
+  width: 100%;
+  max-width: 200px;
+  margin: 0 auto;
+
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.cityRequestError {
+  margin-top: 0.75rem;
+  color: #dc2626;
+  font-size: 0.75rem;
+}
+
+.cityRequestSuccess {
+  margin-top: 0.75rem;
+  color: #059669;
+  font-size: 0.75rem;
+}

@@ -1,0 +1,406 @@
+.main {
+    min-height: calc(100vh - 200px);
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  }
+  
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  
+  .subtitle {
+    text-align: center;
+    color: #6b7280;
+    margin-bottom: 2rem;
+    font-size: 0.875rem;
+  }
+  
+  .settingsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    padding: 1.25rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.2s;
+  
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+  
+    &.disabled {
+      opacity: 0.6;
+      background: #f9fafb;
+  
+      &:hover {
+        transform: none;
+      }
+    }
+  }
+  
+  .cardIcon {
+    font-size: 1.75rem;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f3f4f6;
+    border-radius: 1rem;
+  }
+  
+  .cardContent {
+    flex: 1;
+  
+    h2 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin: 0 0 0.25rem;
+    }
+  
+    p {
+      font-size: 0.75rem;
+      color: #6b7280;
+      margin: 0;
+    }
+  }
+  
+  .cardBtn {
+    padding: 0.5rem 1rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  
+    &:hover {
+      background: #1d4ed8;
+    }
+  }
+  
+  .cardBtnDanger {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    color: #dc2626;
+    transition: all 0.2s;
+  
+    &:hover:not(:disabled) {
+      background: #fee2e2;
+      border-color: #dc2626;
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .cardBtnDisabled {
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    color: #9ca3af;
+    cursor: not-allowed;
+  }
+  
+  .errorMsg {
+    font-size: 0.7rem;
+    color: #dc2626;
+    margin-top: 0.5rem;
+  }
+  
+  // Модальное окно
+  .modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  
+  .modalContent {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 450px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+  
+  .modalHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+  
+    h3 {
+      margin: 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+    }
+  }
+  
+  .closeBtn {
+    background: none;
+    border: none;
+    font-size: 1.25rem;
+    cursor: pointer;
+    color: #9ca3af;
+  
+    &:hover {
+      color: #374151;
+    }
+  }
+  
+  .field {
+    margin-bottom: 1rem;
+  
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.25rem;
+    }
+  }
+  
+  .input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  
+    &:focus {
+      outline: none;
+      border-color: #2563eb;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+  }
+  
+  .error {
+    padding: 0.5rem;
+    background: #fee2e2;
+    border-radius: 0.5rem;
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .success {
+    padding: 0.5rem;
+    background: #d1fae5;
+    border-radius: 0.5rem;
+    color: #059669;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .modalActions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    margin-top: 1rem;
+  }
+  
+  .cancelBtn {
+    padding: 0.5rem 1rem;
+    background: #f3f4f6;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+  
+    &:hover {
+      background: #e5e7eb;
+    }
+  }
+  
+  .submitBtn {
+    padding: 0.5rem 1rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+  
+    &:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .loading {
+    text-align: center;
+    padding: 2rem;
+    color: #6b7280;
+  }
+
+  .dangerCard {
+    border-color: #fee2e2;
+    background: #fef2f2;
+  
+    &:hover {
+      border-color: #dc2626;
+      box-shadow: 0 4px 12px rgba(220, 38, 38, 0.1);
+    }
+  }
+  
+  .cardBtnDanger {
+    padding: 0.5rem 1rem;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  
+    &:hover {
+      background: #b91c1c;
+    }
+  }
+  
+  .warningBox {
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+    padding: 0.75rem;
+    margin-bottom: 1rem;
+  
+    p {
+      margin: 0.25rem 0;
+      font-size: 0.75rem;
+      color: #991b1b;
+  
+      &:first-child {
+        font-weight: 600;
+      }
+    }
+  }
+  
+  .deleteBtn {
+    padding: 0.5rem 1rem;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+  
+    &:hover:not(:disabled) {
+      background: #b91c1c;
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .errorMessage {
+    padding: 0.5rem;
+    background: #fee2e2;
+    border-radius: 0.5rem;
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  .verifiedText {
+    color: #059669;
+    font-weight: 500;
+  }
+  
+  .unverifiedText {
+    color: #d97706;
+    font-weight: 500;
+  }
+  
+  .noEmailText {
+    color: #6b7280;
+  }
+  
+  .emailHint {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-top: 0.25rem;
+  }
+  
+  .globalSuccess {
+    padding: 0.75rem;
+    background: #d1fae5;
+    border-radius: 0.75rem;
+    color: #059669;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .globalError {
+    padding: 0.75rem;
+    background: #fee2e2;
+    border-radius: 0.75rem;
+    color: #dc2626;
+    font-size: 0.875rem;
+    margin-bottom: 1rem;
+    text-align: center;
+  }
+  
+  .errorMessage {
+    padding: 0.5rem;
+    background: #fee2e2;
+    border-radius: 0.5rem;
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .successMessage {
+    padding: 0.5rem;
+    background: #d1fae5;
+    border-radius: 0.5rem;
+    color: #059669;
+    font-size: 0.75rem;
+    margin-bottom: 1rem;
+  }
+  

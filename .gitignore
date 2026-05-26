@@ -39,3 +39,25 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/app/generated/prisma
+
+# локальные файлы .env
+.env
+.env.local
+.env.*.local
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# логи
+*.log
+
+# IDE
+.vscode/
+.idea/
+
+# временные файлы
+*.tmp
+*.temp

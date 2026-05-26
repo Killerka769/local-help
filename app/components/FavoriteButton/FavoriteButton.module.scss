@@ -1,0 +1,36 @@
+.button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: #9ca3af;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  
+    &:hover:not(:disabled) {
+      transform: scale(1.1);
+      color: #f59e0b;
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .small {
+    font-size: 1.125rem;
+    width: 28px;
+    height: 28px;
+  }
+  
+  .medium {
+    font-size: 1.5rem;
+    width: 36px;
+    height: 36px;
+  }
+  
+  .active {
+    color: #f59e0b;
+  }

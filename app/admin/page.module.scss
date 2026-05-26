@@ -1,0 +1,1056 @@
+.main {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+    padding: 2rem 1rem;
+  }
+  
+  .container {
+    max-width: 1400px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0;
+  }
+  
+  .superAdminBadge {
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, #f59e0b, #d97706);
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  
+  .adminBadge {
+    padding: 0.25rem 0.75rem;
+    background: #2563eb;
+    color: white;
+    border-radius: 9999px;
+    font-size: 0.7rem;
+    font-weight: 600;
+  }
+  
+  .searchBar {
+    margin-bottom: 1rem;
+  }
+  
+  .searchInput {
+    width: 100%;
+    max-width: 400px;
+    padding: 0.5rem 1rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  }
+  
+  .copyNotification {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: #10b981;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    z-index: 1000;
+    animation: fadeOut 2s ease-in-out;
+  }
+  
+  @keyframes fadeOut {
+    0% { opacity: 1; }
+    70% { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+  
+  .tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 0.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .tab {
+    padding: 0.5rem 1rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s;
+    &:hover { color: #2563eb; }
+  }
+  
+  .tabActive {
+    color: #2563eb;
+    border-bottom: 2px solid #2563eb;
+    margin-bottom: -0.5rem;
+  }
+  
+  .content {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+  }
+  
+  .statsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .statCard {
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.75rem;
+    text-align: center;
+    &:hover { transform: translateY(-2px); }
+  }
+  
+  .statValue {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: #2563eb;
+  }
+  
+  .statLabel {
+    font-size: 0.7rem;
+    color: #6b7280;
+    margin-top: 0.25rem;
+  }
+  
+  .usersTable, .requestsList {
+    overflow-x: auto;
+    padding: 1rem;
+  }
+  
+  .table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.75rem;
+    th, td { padding: 0.5rem; text-align: left; border-bottom: 1px solid #e5e7eb; }
+    th { background: #f9fafb; font-weight: 600; color: #374151; }
+    tr:hover { background: #f9fafb; }
+  }
+  
+  .copyable {
+    cursor: pointer;
+    &:hover { color: #2563eb; text-decoration: underline; }
+  }
+  
+  .mono {
+    font-family: monospace;
+  }
+  
+  .roleSelect {
+    padding: 0.25rem 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+  }
+  
+  .roleBadge, .activeBadge, .bannedBadge {
+    padding: 0.125rem 0.375rem;
+    border-radius: 0.25rem;
+    font-size: 0.7rem;
+  }
+  .roleBadge { background: #e0e7ff; color: #2563eb; }
+  .activeBadge { background: #d1fae5; color: #059669; }
+  .bannedBadge { background: #fee2e2; color: #dc2626; }
+  
+  .userActions, .requestActions {
+    display: flex;
+    gap: 0.25rem;
+    flex-wrap: wrap;
+  }
+  
+  .viewBtn, .banBtn, .unbanBtn, .deleteRequestBtn {
+    padding: 0.25rem 0.5rem;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.65rem;
+  }
+  .viewBtn { background: #2563eb; color: white; &:hover { background: #1d4ed8; } }
+  .banBtn { background: #dc2626; color: white; &:hover { background: #b91c1c; } }
+  .unbanBtn { background: #10b981; color: white; &:hover { background: #059669; } }
+  .deleteRequestBtn { background: #ef4444; color: white; &:hover { background: #dc2626; } }
+  
+  .complaintsList { padding: 1rem; display: flex; flex-direction: column; gap: 1rem; }
+  .complaintCard { border: 1px solid #e5e7eb; border-radius: 0.75rem; padding: 1rem; }
+  .complaintHeader { display: flex; justify-content: space-between; margin-bottom: 0.5rem; flex-wrap: wrap; gap: 0.5rem; }
+  .complaintType { font-weight: 600; font-size: 0.75rem; }
+  .complaintStatus { margin-left: 0.5rem; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.65rem; }
+  .pending { background: #fef3c7; color: #d97706; }
+  .reviewed { background: #d1fae5; color: #059669; }
+  .dismissed { background: #fee2e2; color: #dc2626; }
+  .banned { background: #e5e7eb; color: #6b7280; }
+  .complaintContent { font-size: 0.75rem; margin-bottom: 0.75rem; p { margin: 0.25rem 0; } }
+  .complaintActions { display: flex; gap: 0.5rem; flex-wrap: wrap; padding-top: 0.5rem; border-top: 1px solid #e5e7eb; }
+  .reviewBtn, .dismissBtn, .deleteTargetBtn { padding: 0.375rem 0.75rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 0.7rem; }
+  .reviewBtn { background: #2563eb; color: white; }
+  .dismissBtn { background: #f3f4f6; color: #374151; }
+  .deleteTargetBtn { background: #dc2626; color: white; }
+  
+  .emptyCard { text-align: center; padding: 3rem; color: #6b7280; }
+  .loading { text-align: center; padding: 3rem; color: #6b7280; }
+  
+  .modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modalContent {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    width: 90%;
+    max-width: 450px;
+  }
+  .field { margin-bottom: 1rem; label { display: block; font-size: 0.75rem; margin-bottom: 0.25rem; } }
+  .textarea, .input { width: 100%; padding: 0.5rem; border: 1px solid #e5e7eb; border-radius: 0.5rem; font-size: 0.875rem; }
+  .modalActions { display: flex; gap: 0.75rem; justify-content: flex-end; margin-top: 1rem; }
+  .cancelBtn { padding: 0.5rem 1rem; background: #f3f4f6; border: none; border-radius: 0.5rem; cursor: pointer; }
+  .confirmBanBtn { padding: 0.5rem 1rem; background: #dc2626; color: white; border: none; border-radius: 0.5rem; cursor: pointer; }
+
+  .targetDetails {
+    margin-top: 0.75rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .targetCard {
+    background: #f9fafb;
+    padding: 0.75rem;
+    border-radius: 0.5rem;
+    margin-top: 0.25rem;
+    font-size: 0.7rem;
+    
+    p {
+      margin: 0.25rem 0;
+    }
+  }
+  
+  .viewTargetBtn {
+    margin-top: 0.5rem;
+    padding: 0.25rem 0.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.25rem;
+    cursor: pointer;
+    font-size: 0.7rem;
+    
+    &:hover {
+      background: #1d4ed8;
+    }
+  }
+  
+  .targetNotFound {
+    color: #dc2626;
+    font-style: italic;
+  }
+
+/* Добавь в конец файла */
+
+/* Вкладка откликов */
+.offersSection {
+  padding: 1rem;
+}
+
+.searchBar {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+}
+
+.statusFilter {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+.offersTable {
+  overflow-x: auto;
+}
+
+.offerComment {
+  max-width: 200px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.offerStatus {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.approved {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.completed {
+  background: #e0e7ff;
+  color: #2563eb;
+}
+
+.completed_by_executor {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.deleteBtn {
+  padding: 0.25rem 0.5rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+
+  &:hover {
+    background: #b91c1c;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pageBtn {
+  padding: 0.375rem 0.75rem;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+
+  &:hover:not(:disabled) {
+    background: #e5e7eb;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pageInfo {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Добавь в конец файла */
+
+/* Вкладка откликов */
+.offersSection {
+  padding: 1rem;
+}
+
+.statusFilter {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+.offersTable {
+  overflow-x: auto;
+}
+
+.offerComment {
+  max-width: 200px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.offerStatus {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.approved {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.completed {
+  background: #e0e7ff;
+  color: #2563eb;
+}
+
+.completed_by_executor {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.linkBtn {
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  text-align: left;
+  padding: 0;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.deleteBtn {
+  padding: 0.25rem 0.5rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+
+  &:hover {
+    background: #b91c1c;
+  }
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 1.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.pageBtn {
+  padding: 0.375rem 0.75rem;
+  background: #f3f4f6;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.75rem;
+
+  &:hover:not(:disabled) {
+    background: #e5e7eb;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.pageInfo {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+/* Логи */
+.logsSection {
+  padding: 1rem;
+}
+
+.actionFilter {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+.logsTable {
+  overflow-x: auto;
+}
+
+.detailsCell {
+  max-width: 250px;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.actionBadge {
+  padding: 0.125rem 0.375rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+  white-space: nowrap;
+}
+
+.actionBadge.ban_user { background: #fee2e2; color: #dc2626; }
+.actionBadge.unban_user { background: #d1fae5; color: #059669; }
+.actionBadge.delete_request { background: #fef3c7; color: #d97706; }
+.actionBadge.delete_offer { background: #fef3c7; color: #d97706; }
+.actionBadge.resolve_complaint { background: #d1fae5; color: #059669; }
+.actionBadge.dismiss_complaint { background: #fee2e2; color: #dc2626; }
+.actionBadge.delete_complaint_target { background: #fee2e2; color: #dc2626; }
+.actionBadge.change_role { background: #e0e7ff; color: #2563eb; }
+
+.targetType {
+  font-family: monospace;
+  font-size: 0.7rem;
+  color: #6b7280;
+}
+
+.targetName {
+  font-size: 0.7rem;
+  color: #374151;
+  margin-left: 0.25rem;
+}
+
+// Добавь в конец файла
+
+.banUserBtn {
+  padding: 0.375rem 0.75rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  
+  &:hover {
+    background: #b91c1c;
+  }
+}
+
+.complaintActions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.reviewBtn {
+  padding: 0.375rem 0.75rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.dismissBtn {
+  padding: 0.375rem 0.75rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  
+  &:hover {
+    background: #e5e7eb;
+  }
+}
+
+.deleteTargetBtn {
+  padding: 0.375rem 0.75rem;
+  background: #dc2626;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  
+  &:hover {
+    background: #b91c1c;
+  }
+}
+
+.targetDetails {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.targetCard {
+  background: #f9fafb;
+  padding: 0.75rem;
+  border-radius: 0.5rem;
+  margin-top: 0.25rem;
+  font-size: 0.7rem;
+  
+  p {
+    margin: 0.25rem 0;
+  }
+}
+
+.viewTargetBtn {
+  margin-top: 0.5rem;
+  padding: 0.25rem 0.5rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  
+  &:hover {
+    background: #1d4ed8;
+  }
+}
+
+.targetNotFound {
+  color: #dc2626;
+  font-style: italic;
+}
+
+.fullCardBtn {
+  padding: 0.25rem 0.5rem;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.65rem;
+
+  &:hover {
+    background: #7c3aed;
+  }
+}
+
+// Поиск пользователя
+.searchUserSection {
+  padding: 1rem;
+}
+
+.searchUserCard {
+  background: white;
+  border-radius: 1rem;
+  padding: 1.5rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.searchUserCard h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.125rem;
+}
+
+.searchHint {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.searchUserForm {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.searchUserInput {
+  flex: 1;
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+
+  &:focus {
+    outline: none;
+    border-color: #2563eb;
+  }
+}
+
+.searchUserBtn {
+  padding: 0.5rem 1rem;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+
+  &:hover:not(:disabled) {
+    background: #1d4ed8;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.searchUserError {
+  margin-top: 1rem;
+  padding: 0.5rem;
+  background: #fee2e2;
+  border-radius: 0.5rem;
+  color: #dc2626;
+  font-size: 0.875rem;
+}
+
+.searchUserResult {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 0.75rem;
+}
+
+.resultHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.openFullCardBtn {
+  padding: 0.25rem 0.5rem;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+
+  &:hover {
+    background: #7c3aed;
+  }
+}
+
+.resultInfo {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.resultAvatar {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  flex-shrink: 0;
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+}
+
+.resultAvatarPlaceholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  font-weight: 700;
+  color: white;
+}
+
+.resultDetails {
+  flex: 1;
+
+  p {
+    margin: 0.25rem 0;
+    font-size: 0.75rem;
+  }
+}
+
+.resultActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.fullCardBtn {
+  padding: 0.25rem 0.5rem;
+  background: #8b5cf6;
+  color: white;
+  border: none;
+  border-radius: 0.25rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+
+  &:hover {
+    background: #7c3aed;
+  }
+}
+
+.citiesSection {
+  padding: 1rem;
+}
+
+.filterBar {
+  margin-bottom: 1rem;
+}
+
+.statusFilter {
+  padding: 0.5rem 1rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: white;
+  cursor: pointer;
+}
+
+.cityRequestsList {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.cityRequestCard {
+  background: white;
+  border-radius: 0.75rem;
+  border: 1px solid #e5e7eb;
+  padding: 1rem;
+}
+
+.cityRequestHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.cityName {
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.cityRequestStatus {
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.pending {
+  background: #fef3c7;
+  color: #d97706;
+}
+
+.approved {
+  background: #d1fae5;
+  color: #059669;
+}
+
+.rejected {
+  background: #fee2e2;
+  color: #dc2626;
+}
+
+.cityRequestInfo {
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+
+  p {
+    margin: 0.25rem 0;
+  }
+}
+
+.phoneLink {
+  color: #2563eb;
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.cityRequestActions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+  padding-top: 0.5rem;
+  border-top: 1px solid #e5e7eb;
+}
+
+.approveCityBtn {
+  padding: 0.375rem 0.75rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+
+  &:hover {
+    background: #059669;
+  }
+}
+
+.rejectCityBtn {
+  padding: 0.375rem 0.75rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+
+  &:hover {
+    background: #dc2626;
+  }
+}
+
+.citiesSection {
+  padding: 1rem;
+  overflow-x: auto;
+}
+
+.citiesTable {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.cityNameCell {
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.votesCell {
+  text-align: center;
+  font-weight: 600;
+  color: #2563eb;
+}
+
+.usersCell {
+  max-width: 300px;
+}
+
+.usersList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.userItem {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.7rem;
+  padding: 0.125rem 0;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.userName {
+  color: #374151;
+}
+
+.userPhone {
+  color: #2563eb;
+  text-decoration: none;
+  font-family: monospace;
+  font-size: 0.65rem;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+.actionsCell {
+  white-space: nowrap;
+}
+
+.approveCityBtn {
+  padding: 0.375rem 0.75rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+  margin-right: 0.5rem;
+
+  &:hover {
+    background: #059669;
+  }
+}
+
+.rejectCityBtn {
+  padding: 0.375rem 0.75rem;
+  background: #ef4444;
+  color: white;
+  border: none;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  font-size: 0.7rem;
+
+  &:hover {
+    background: #dc2626;
+  }
+}

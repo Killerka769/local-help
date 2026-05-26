@@ -1,0 +1,36 @@
+// Переменные
+$primary: #2563eb;
+$primary-dark: #1d4ed8;
+$text-dark: #111827;
+$text-gray: #6b7280;
+$border: #e5e7eb;
+$white: #ffffff;
+
+// Глобальные стили (только здесь!)
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: system-ui, -apple-system, 'Inter', 'Segoe UI', Roboto, sans-serif;
+  color: $text-dark;
+  background: $white;
+  line-height: 1.5;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem;
+  
+  @media (min-width: 768px) {
+    padding: 0 2rem;
+  }
+}

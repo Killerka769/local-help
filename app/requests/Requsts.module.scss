@@ -1,0 +1,378 @@
+.main {
+    min-height: calc(100vh - 200px);
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  }
+  
+  .container {
+    width: 100%;
+    max-width: 1280px;
+    margin: 0 auto;
+  }
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+  
+  .title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    margin: 0;
+  
+    @media (min-width: 768px) {
+      font-size: 2.25rem;
+    }
+  }
+  
+  .createBtn {
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border-radius: 0.75rem;
+    font-weight: 500;
+    transition: all 0.2s;
+  
+    &:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+  }
+  
+  // Фильтры
+  .filters {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #e5e7eb;
+    padding-bottom: 1rem;
+  }
+  
+  .filterBtn {
+    padding: 0.5rem 1rem;
+    background: transparent;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s;
+  
+    &:hover {
+      background: #f3f4f6;
+      color: #374151;
+    }
+  }
+  
+  .filterActive {
+    background: #2563eb;
+    color: white;
+  
+    &:hover {
+      background: #1d4ed8;
+      color: white;
+    }
+  }
+  
+  // Сетка
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  // Карточка
+
+.card {
+  background: white;
+  border-radius: 1rem;
+  border: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  transition: all 0.2s;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.cardTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: #111827;
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  word-break: break-word;
+}
+
+.cardDescription {
+  font-size: 0.813rem;
+  color: #6b7280;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  word-break: break-word;
+}
+
+.cardFooter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+.cardInfo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+  color: #6b7280;
+  background: #f3f4f6;
+  padding: 0.25rem 0.625rem;
+  border-radius: 0.5rem;
+  max-width: 100%;
+  overflow: hidden;
+}
+
+.infoText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 120px;
+
+  @media (min-width: 640px) {
+    max-width: 150px;
+  }
+
+  @media (min-width: 768px) {
+    max-width: 200px;
+  }
+}
+  
+  .cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-bottom: 0.75rem;
+    flex-wrap: wrap;
+  }
+  
+  .budget {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #2563eb;
+    background: #e0e7ff;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    white-space: nowrap;
+  }
+  
+  .infoIcon {
+    font-size: 0.875rem;
+  }
+  
+  .infoText {
+    font-size: 0.75rem;
+  }
+  
+  .status {
+    .infoText {
+      font-weight: 500;
+    }
+  }
+  
+  .cardDate {
+    font-size: 0.7rem;
+    color: #9ca3af;
+    margin-bottom: 0.75rem;
+  }
+  
+  .cardActions {
+    display: flex;
+    gap: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+  }
+  
+  .editLink {
+    font-size: 0.75rem;
+    color: #2563eb;
+    text-decoration: none;
+  
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+  
+  .deleteBtn {
+    font-size: 0.75rem;
+    color: #dc2626;
+    background: none;
+    border: none;
+    cursor: pointer;
+  
+    &:hover:not(:disabled) {
+      text-decoration: underline;
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  // Пагинация
+  .pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 3rem;
+  }
+  
+  .pageBtn {
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    transition: all 0.2s;
+  
+    &:hover:not(:disabled) {
+      background: #f3f4f6;
+      border-color: #2563eb;
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .pageInfo {
+    font-size: 0.875rem;
+    color: #6b7280;
+  }
+  
+  // Скелетон
+  .loadingGrid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  
+    @media (min-width: 768px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  .skeletonCard {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    padding: 1.5rem;
+  }
+  
+  .skeletonTitle {
+    height: 24px;
+    width: 70%;
+    background: #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 1rem;
+    animation: pulse 1.5s ease-in-out infinite;
+  }
+  
+  .skeletonLine {
+    height: 16px;
+    background: #e5e7eb;
+    border-radius: 0.5rem;
+    margin-bottom: 0.5rem;
+    animation: pulse 1.5s ease-in-out infinite;
+  
+    &:last-child {
+      width: 60%;
+    }
+  }
+  
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+  }
+  
+  // Пустое состояние
+  .emptyCard {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .emptyText {
+    color: #6b7280;
+    margin-bottom: 1rem;
+  }
+  
+  .emptyBtn {
+    display: inline-block;
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border-radius: 0.75rem;
+    font-weight: 500;
+  
+    &:hover {
+      background: #1d4ed8;
+    }
+  }
+  
+  // Ошибка
+  .errorCard {
+    text-align: center;
+    padding: 3rem;
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .errorText {
+    color: #dc2626;
+    margin-bottom: 1rem;
+  }
+  
+  .btnPrimary {
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+  
+    &:hover {
+      background: #1d4ed8;
+    }
+  }

@@ -1,0 +1,168 @@
+.main {
+    min-height: calc(100vh - 200px);
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  }
+  
+  .container {
+    max-width: 600px;
+    margin: 0 auto;
+  }
+  
+  .blockedCard {
+    background: white;
+    border-radius: 1.5rem;
+    border: 1px solid #e5e7eb;
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+  }
+  
+  .blockedIcon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    color: #dc2626;
+  }
+  
+  .subtitle {
+    color: #6b7280;
+    margin-bottom: 1.5rem;
+  }
+  
+  .infoBox {
+    background: #f9fafb;
+    border-radius: 1rem;
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+    text-align: left;
+  }
+  
+  .infoRow {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #e5e7eb;
+  
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+  
+  .infoLabel {
+    font-weight: 600;
+    color: #374151;
+    min-width: 140px;
+  }
+  
+  .infoValue {
+    color: #6b7280;
+  }
+  
+  .actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    margin-bottom: 1.5rem;
+    flex-wrap: wrap;
+  }
+  
+  .feedBtn,
+  .homeBtn {
+    padding: 0.5rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+  }
+  
+  .feedBtn {
+    background: #2563eb;
+    color: white;
+    border: none;
+  
+    &:hover {
+      background: #1d4ed8;
+    }
+  }
+  
+  .homeBtn {
+    background: transparent;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+  
+    &:hover {
+      background: #f3f4f6;
+    }
+  }
+  
+  .footerText {
+    font-size: 0.75rem;
+    color: #9ca3af;
+  }
+
+  .logoutBtn {
+    padding: 0.75rem 1.5rem;
+    background: #dc2626;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    width: 100%;
+  
+    @media (min-width: 480px) {
+      width: auto;
+    }
+  
+    &:hover:not(:disabled) {
+      background: #b91c1c;
+      transform: translateY(-1px);
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+  
+  .actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+  
+    @media (min-width: 480px) {
+      flex-direction: row;
+      justify-content: center;
+    }
+  }
+  
+  .feedBtn {
+    padding: 0.75rem 1.5rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: all 0.2s;
+    width: 100%;
+  
+    @media (min-width: 480px) {
+      width: auto;
+    }
+  
+    &:hover {
+      background: #1d4ed8;
+      transform: translateY(-1px);
+    }
+  }

@@ -1,0 +1,76 @@
+// app/privacy/page.module.scss
+.main {
+    min-height: calc(100vh - 200px);
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  }
+  
+  .container {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  
+  .date {
+    color: #6b7280;
+    font-size: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  
+  .content {
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    padding: 2rem;
+    
+    section {
+      margin-bottom: 1.5rem;
+    }
+    
+    h2 {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: #2563eb;
+    }
+    
+    p {
+      color: #374151;
+      line-height: 1.5;
+      font-size: 0.875rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    ul {
+      margin-left: 1.5rem;
+      li {
+        color: #374151;
+        font-size: 0.875rem;
+        margin-bottom: 0.25rem;
+      }
+    }
+    
+    strong {
+      color: #111827;
+    }
+  }
+  
+  .back {
+    margin-top: 1.5rem;
+    text-align: center;
+  }
+  
+  .backLink {
+    color: #2563eb;
+    text-decoration: none;
+    font-size: 0.875rem;
+    
+    &:hover {
+      text-decoration: underline;
+    }
+  }

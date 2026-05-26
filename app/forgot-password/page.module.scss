@@ -1,0 +1,107 @@
+// app/forgot-password/page.module.scss
+.main {
+    min-height: calc(100vh - 200px);
+    padding: 3rem 1rem;
+    background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
+  }
+  
+  .container {
+    max-width: 450px;
+    margin: 0 auto;
+  }
+  
+  .card {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    border: 1px solid #e5e7eb;
+  }
+  
+  .title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+    text-align: center;
+  }
+  
+  .subtitle {
+    text-align: center;
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .field {
+    margin-bottom: 1rem;
+  
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.25rem;
+    }
+  }
+  
+  .input {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-size: 0.875rem;
+  
+    &:focus {
+      outline: none;
+      border-color: #2563eb;
+    }
+  }
+  
+  .submitBtn {
+    width: 100%;
+    padding: 0.75rem;
+    background: #2563eb;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    margin-top: 0.5rem;
+  
+    &:hover:not(:disabled) {
+      background: #1d4ed8;
+    }
+  
+    &:disabled {
+      opacity: 0.5;
+    }
+  }
+  
+  .errorMessage {
+    padding: 0.5rem;
+    background: #fee2e2;
+    border-radius: 0.5rem;
+    color: #dc2626;
+    font-size: 0.75rem;
+    margin-top: 0.5rem;
+    text-align: center;
+  }
+  
+  .successMessage {
+    padding: 1rem;
+    background: #d1fae5;
+    border-radius: 0.5rem;
+    color: #059669;
+    font-size: 0.875rem;
+    text-align: center;
+    line-height: 1.5;
+  }
+  
+  .link {
+    display: inline-block;
+    margin-top: 0.75rem;
+    color: #2563eb;
+    text-decoration: none;
+  
+    &:hover {
+      text-decoration: underline;
+    }
+  }
