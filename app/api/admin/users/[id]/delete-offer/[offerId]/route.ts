@@ -5,11 +5,11 @@ import { createAdminLog } from "@/lib/adminLog";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ userId: string; offerId: string }> }
+  { params }: { params: Promise<{ id: string; offerId: string }> }
 ) {
   try {
     const admin = await requireAdmin(req);
-    const { userId, offerId } = await params;
+    const { id: userId, offerId } = await params;
 
     const offer = await prisma.offer.findUnique({
       where: { id: offerId, userId },

@@ -61,3 +61,4 @@ prisma/*.db-journal
 # временные файлы
 *.tmp
 *.temp
+.vercel

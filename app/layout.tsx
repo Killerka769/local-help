@@ -4,19 +4,6 @@ import Header from "./components/layout/Header/Header";
 import Footer from "./components/layout/Footer/Footer";
 import Providers from "./providers";
 import EmailWarning from "./components/EmailWarning/EmailWarning";
-import { Inter, Montserrat } from "next/font/google";
-
-
-const montserrat = Montserrat({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-montserrat",
-  weight: ["400", "500", "600", "700", "800"],
-});
-
-const inter = Inter({
-  subsets: ["latin", "cyrillic"],
-  variable: "--font-inter",
-});
 
 export const metadata: Metadata = {
   title: {
@@ -92,7 +79,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ru" className={`${inter.variable} ${montserrat.variable}`}>
+    <html lang="ru">
       <body>
         <Providers>
           <Header />

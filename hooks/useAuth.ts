@@ -11,6 +11,9 @@ interface User {
   cityId: string;
   role: "USER" | "ADMIN" | "SUPER_ADMIN";
   isBlocked: boolean;
+  blockedReason?: string | null; 
+  blockedUntil?: string | null;  
+  blockedBy?: string | null;     
   rating: number;
   email: string | null; 
   emailVerified: boolean; 

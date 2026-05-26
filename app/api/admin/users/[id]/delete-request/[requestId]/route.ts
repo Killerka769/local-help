@@ -5,14 +5,14 @@ import { createAdminLog } from "@/lib/adminLog";
 
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: Promise<{ userId: string; requestId: string }> }
+  { params }: { params: Promise<{ id: string; requestId: string }> }
 ) {
   try {
     const admin = await requireAdmin(req);
-    const { userId, requestId } = await params;
+    const { id, requestId } = await params;
 
     const request = await prisma.request.findUnique({
-      where: { id: requestId, authorId: userId },
+      where: { id: requestId, authorId: id },
       select: { title: true },
     });
 
@@ -34,7 +34,7 @@ export async function DELETE(
       targetType: "request",
       targetId: requestId,
       targetName: request.title,
-      details: `Удалена заявка пользователя ${userId}`,
+      details: `Удалена заявка пользователя ${id}`,
       ipAddress: req.headers.get("x-forwarded-for") || undefined,
       userAgent: req.headers.get("user-agent") || undefined,
     });

@@ -75,7 +75,7 @@ export default function BlockedPage() {
             <div className={styles.infoRow}>
               <span className={styles.infoLabel}>Причина блокировки:</span>
               <span className={styles.infoValue}>
-                {banInfo?.blockedReason || user.blockedReason || "Нарушение правил платформы"}
+                {banInfo?.blockedReason || user?.blockedReason || "Нарушение правил платформы"}
               </span>
             </div>
 
