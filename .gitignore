@@ -62,3 +62,4 @@ prisma/*.db-journal
 *.tmp
 *.temp
 .vercel
+.env*
