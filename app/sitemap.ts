@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { prisma } from "@/lib/prisma";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = "https://localhelp.ru";
+  const baseUrl = "https://local-help-pam0sblod-killerka769s-projects-11fdba53.vercel.app";
 
   const requests = await prisma.request.findMany({
     where: { status: "active" },
