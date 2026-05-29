@@ -2,8 +2,10 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   /* config options here */
-  reactCompiler: true,
-  compress: true
+  // reactCompiler: true,
+  compress: true,
+  distDir: '.next',
+  generateEtags: false,
 };
 
 export default nextConfig;

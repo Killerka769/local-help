@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
       name: "token",
       value: token,
       httpOnly: true,
-      secure: false, // Для разработки на localhost ставим false
+      secure: process.env.NODE_ENV === "production", // Для разработки на localhost ставим false
       sameSite: "lax",
       path: "/",
       maxAge: 60 * 60 * 24 * 7, // 7 дней
