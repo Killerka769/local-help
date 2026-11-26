@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { handleRouteError } from "@/lib/http";
 
 export async function GET(req: NextRequest) {
   try {
@@ -52,11 +53,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ cities: citiesWithDetails });
   } catch (error) {
-    console.error("[ADMIN_CITY_REQUESTS_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADMIN_CITY_REQUESTS_ERROR]");
   }
 }
 
@@ -98,11 +95,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[ADMIN_CITY_APPROVE_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADMIN_CITY_APPROVE_ERROR]");
   }
 }
 
@@ -129,10 +122,6 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[ADMIN_CITY_REJECT_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADMIN_CITY_REJECT_ERROR]");
   }
 }

@@ -1,28 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireAdmin } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const admin = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    });
-
-    if (!admin || (admin.role !== "ADMIN" && admin.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
-    }
+    await requireAdmin(req);
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -89,10 +72,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[ADMIN_OFFERS_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADMIN_OFFERS_ERROR]");
   }
 }

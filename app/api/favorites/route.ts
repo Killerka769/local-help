@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { getRateLimitKey, rateLimit } from "@/lib/rateLimit";
+import { requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 20 });
 
 // POST — добавить в избранное
@@ -20,26 +20,8 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const userBlock = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { isBlocked: true, role: true },
-      });
-      
-      if (userBlock?.isBlocked) {
-        return NextResponse.json(
-          { error: 'Ваш аккаунт заблокирован' },
-          { status: 403 }
-        );
-      }
+    const authUser = await requireUser(req);
+    const userId = authUser.id;
 
     const { requestId } = await req.json();
 
@@ -74,11 +56,7 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ favorite }, { status: 201 });
   } catch (error) {
-    console.error("[ADD_FAVORITE_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADD_FAVORITE_ERROR]");
   }
 }
 
@@ -96,14 +74,8 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const authUser = await requireUser(req, { allowBlocked: true });
+    const userId = authUser.id;
 
     const { searchParams } = new URL(req.url);
     const requestId = searchParams.get("requestId");
@@ -123,10 +95,6 @@ export async function DELETE(req: NextRequest) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[REMOVE_FAVORITE_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[REMOVE_FAVORITE_ERROR]");
   }
 }

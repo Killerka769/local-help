@@ -22,6 +22,16 @@ export default function ChangePasswordModal({ onClose, onSuccess }: ChangePasswo
     setIsLoading(true);
     setError("");
 
+    if (newPassword.length < 8) {
+      setError("Пароль должен быть минимум 8 символов");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setError("Пароли не совпадают");
+      return;
+    }
+
     try {
       const res = await fetch("/api/auth/change-password", {
         method: "POST",
@@ -77,7 +87,7 @@ export default function ChangePasswordModal({ onClose, onSuccess }: ChangePasswo
               type="password"
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
-              placeholder="Минимум 6 символов"
+              placeholder="Минимум 8 символов"
               required
               className={styles.input}
             />

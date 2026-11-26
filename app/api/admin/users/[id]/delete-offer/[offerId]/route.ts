@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/adminLog";
+import { handleRouteError } from "@/lib/http";
 
 export async function DELETE(
   req: NextRequest,
@@ -37,10 +38,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[ADMIN_DELETE_USER_OFFER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADMIN_DELETE_USER_OFFER_ERROR]");
   }
 }

@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-export const revalidate = 3600; // кэш на 1 час
+
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   try {
     const cities = await prisma.city.findMany({

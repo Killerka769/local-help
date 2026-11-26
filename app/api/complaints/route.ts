@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { isValidText } from "@/utils/badWords";
 import { getRateLimitKey, rateLimit } from "@/lib/rateLimit";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
 const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 5 });
 
 const REASON_OPTIONS = {
@@ -48,14 +47,8 @@ export async function POST(req: NextRequest) {
       );
     }
     
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const authUser = await requireUser(req);
+    const userId = authUser.id;
 
     const { targetType, targetId, reason, description } = await req.json();
 
@@ -149,10 +142,6 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ complaint }, { status: 201 });
   } catch (error) {
-    console.error("[COMPLAINT_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[COMPLAINT_ERROR]");
   }
 }

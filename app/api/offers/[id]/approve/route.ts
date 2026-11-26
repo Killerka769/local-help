@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { createNotification } from "@/lib/notifications";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
 
 export async function POST(
   req: NextRequest,
@@ -11,83 +10,58 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const userBlock = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isBlocked: true, role: true },
-    });
-    
-    if (userBlock?.isBlocked) {
-      return NextResponse.json(
-        { error: 'Ваш аккаунт заблокирован' },
-        { status: 403 }
-      );
-    }
+    const user = await requireUser(req);
 
     const offer = await prisma.offer.findUnique({
       where: { id },
-      include: {
-        request: true,
-      },
+      include: { request: true },
     });
 
     if (!offer) {
-      return NextResponse.json({ error: "Отклик не найден" }, { status: 404 });
+      throw new HttpError(404, "Отклик не найден");
     }
 
-    // Проверяем, что текущий пользователь — автор заявки
-    if (offer.request.authorId !== userId) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
+    if (offer.request.authorId !== user.id) {
+      throw new HttpError(403, "Нет прав");
     }
 
-    if (offer.request.status !== "active") {
-      return NextResponse.json(
-        { error: "Заявка уже закрыта или истёк срок" },
-        { status: 400 }
-      );
-    }
-
-    if (offer.status !== "pending") {
-      return NextResponse.json(
-        { error: "Отклик уже обработан" },
-        { status: 400 }
-      );
-    }
-
-    // Находим все отклоняемые отклики
-    const rejectedOffers = await prisma.offer.findMany({
-      where: {
-        requestId: offer.requestId,
-        id: { not: id },
-        status: "pending",
-      },
-    });
-
-    // Одобряем текущий отклик, остальные отклоняем
-    await prisma.$transaction([
-      prisma.offer.update({
-        where: { id },
+    const rejectedOffers = await prisma.$transaction(async (tx) => {
+      const approved = await tx.offer.updateMany({
+        where: {
+          id,
+          status: "pending",
+          request: {
+            authorId: user.id,
+            status: "active",
+          },
+        },
         data: { status: "approved" },
-      }),
-      prisma.offer.updateMany({
+      });
+
+      if (approved.count !== 1) {
+        throw new HttpError(400, "Отклик уже обработан или заявка закрыта");
+      }
+
+      const pending = await tx.offer.findMany({
+        where: {
+          requestId: offer.requestId,
+          id: { not: id },
+          status: "pending",
+        },
+      });
+
+      await tx.offer.updateMany({
         where: {
           requestId: offer.requestId,
           id: { not: id },
           status: "pending",
         },
         data: { status: "rejected" },
-      }),
-    ]);
+      });
 
-    // Уведомление исполнителю (одобренный отклик)
+      return pending;
+    });
+
     await createNotification({
       userId: offer.userId,
       type: "offer_approved",
@@ -96,7 +70,6 @@ export async function POST(
       link: `/offers/${offer.id}`,
     });
 
-    // Уведомления всем отклонённым исполнителям
     for (const rejectedOffer of rejectedOffers) {
       await createNotification({
         userId: rejectedOffer.userId,
@@ -109,10 +82,6 @@ export async function POST(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[APPROVE_OFFER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[APPROVE_OFFER_ERROR]");
   }
 }

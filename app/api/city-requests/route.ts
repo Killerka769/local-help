@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireAdmin, requireUser } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const authUser = await requireUser(req);
+    const userId = authUser.id;
 
     const { cityName } = await req.json();
 
@@ -48,34 +41,13 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json({ success: true, id: cityRequest.id });
   } catch (error) {
-    console.error("[CITY_REQUEST_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[CITY_REQUEST_ERROR]");
   }
 }
 
-// GET — для админа (просмотр всех заявок)
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const admin = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    });
-
-    if (!admin || (admin.role !== "ADMIN" && admin.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
-    }
+    await requireAdmin(req);
 
     const requests = await prisma.cityRequest.findMany({
       include: {
@@ -92,10 +64,6 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({ requests });
   } catch (error) {
-    console.error("[CITY_REQUESTS_GET_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[CITY_REQUESTS_GET_ERROR]");
   }
 }

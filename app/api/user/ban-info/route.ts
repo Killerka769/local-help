@@ -1,22 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { getOptionalUser } from "@/lib/auth";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
+    const authed = await getOptionalUser(req);
+    if (!authed) {
       return NextResponse.json({ isBlocked: false });
     }
 
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: authed.id },
       select: {
         isBlocked: true,
         blockedReason: true,
@@ -26,8 +20,9 @@ export async function GET(req: NextRequest) {
       },
     });
 
+    const isBlocked = Boolean(user?.isBlocked);
     let blockedByName = null;
-    if (user?.blockedBy) {
+    if (user?.blockedBy && isBlocked) {
       const admin = await prisma.user.findUnique({
         where: { id: user.blockedBy },
         select: { name: true },
@@ -36,13 +31,13 @@ export async function GET(req: NextRequest) {
     }
 
     return NextResponse.json({
-      isBlocked: user?.isBlocked || false,
-      blockedReason: user?.blockedReason,
-      blockedUntil: user?.blockedUntil,
-      bannedAt: user?.bannedAt,
+      isBlocked,
+      blockedReason: isBlocked ? user?.blockedReason : null,
+      blockedUntil: isBlocked ? user?.blockedUntil : null,
+      bannedAt: isBlocked ? user?.bannedAt : null,
       blockedByName,
     });
-  } catch (error) {
+  } catch {
     return NextResponse.json({ isBlocked: false });
   }
 }

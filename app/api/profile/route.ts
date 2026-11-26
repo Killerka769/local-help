@@ -1,27 +1,19 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { isValidName, isValidText } from "@/utils/badWords";
 import { getRateLimitKey, rateLimit } from "@/lib/rateLimit";
+import { requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
+import { sanitizeAvatarUrl } from "@/lib/avatar";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 10 });
 
-// GET — получить профиль
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
+    const authUser = await requireUser(req, { allowBlocked: true });
 
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    // Получаем пользователя с основными данными
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: authUser.id },
       select: {
         id: true,
         name: true,
@@ -31,12 +23,12 @@ export async function GET(req: NextRequest) {
         cityId: true,
         role: true,
         isBlocked: true,
-        blockedReason: true,   
-        blockedUntil: true,  
-        blockedBy: true,     
+        blockedReason: true,
+        blockedUntil: true,
+        blockedBy: true,
         rating: true,
-        email: true,         
-        emailVerified: true,  
+        email: true,
+        emailVerified: true,
         createdAt: true,
         _count: {
           select: {
@@ -48,13 +40,12 @@ export async function GET(req: NextRequest) {
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+      throw new HttpError(404, "Пользователь не найден");
     }
 
-    // Считаем количество выполненных заявок (где пользователь был исполнителем и отклик завершён)
     const completedCount = await prisma.offer.count({
       where: {
-        userId: userId,
+        userId: authUser.id,
         status: "completed",
       },
     });
@@ -66,78 +57,59 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[PROFILE_GET_ERROR]", error);
-    return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
+    return handleRouteError(error, "[PROFILE_GET_ERROR]");
   }
 }
 
-// PUT — обновить профиль
 export async function PUT(req: NextRequest) {
   try {
-    const rateKey = getRateLimitKey(req, "profileUpdate");
-    const { success } = limiter.check(rateKey);
-
+    const { success } = limiter.check(getRateLimitKey(req, "profileUpdate"));
     if (!success) {
-      return NextResponse.json(
-        { error: "Слишком много запросов. Подождите немного." },
-        { status: 429 }
-      );
+      throw new HttpError(429, "Слишком много запросов. Подождите немного.");
     }
 
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const userBlock = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isBlocked: true, role: true },
-    });
-    
-    if (userBlock?.isBlocked) {
-      return NextResponse.json(
-        { error: 'Ваш аккаунт заблокирован' },
-        { status: 403 }
-      );
-    }
-
+    const authUser = await requireUser(req);
     const body = await req.json();
     const { name, description, avatar, cityId } = body;
 
-    // Проверяем, существует ли город (если передан)
     if (cityId) {
       const cityExists = await prisma.city.findUnique({
         where: { id: cityId },
       });
       if (!cityExists) {
-        return NextResponse.json({ error: "Город не найден" }, { status: 400 });
+        throw new HttpError(400, "Город не найден");
       }
     }
 
     if (name !== undefined) {
       const nameValidation = isValidName(name);
       if (!nameValidation.valid) {
-        return NextResponse.json({ error: nameValidation.error }, { status: 400 });
+        throw new HttpError(400, nameValidation.error || "Неверное имя");
       }
     }
 
     if (description !== undefined) {
       const descValidation = isValidText(description, "Описание");
       if (!descValidation.valid) {
-        return NextResponse.json({ error: descValidation.error }, { status: 400 });
+        throw new HttpError(400, descValidation.error || "Неверное описание");
+      }
+    }
+
+    let avatarValue: string | null | undefined = undefined;
+    if (avatar !== undefined) {
+      try {
+        avatarValue = sanitizeAvatarUrl(avatar);
+      } catch (e) {
+        throw new HttpError(400, e instanceof Error ? e.message : "Неверный URL аватара");
       }
     }
 
     const updatedUser = await prisma.user.update({
-      where: { id: userId },
+      where: { id: authUser.id },
       data: {
         name: name !== undefined ? name : undefined,
         description: description !== undefined ? description : undefined,
-        avatar: avatar !== undefined ? avatar : undefined,
+        avatar: avatarValue !== undefined ? avatarValue : undefined,
         cityId: cityId !== undefined ? cityId : undefined,
       },
       select: {
@@ -154,7 +126,6 @@ export async function PUT(req: NextRequest) {
 
     return NextResponse.json({ user: updatedUser });
   } catch (error) {
-    console.error("[PROFILE_PUT_ERROR]", error);
-    return NextResponse.json({ error: "Ошибка сервера" }, { status: 500 });
+    return handleRouteError(error, "[PROFILE_PUT_ERROR]");
   }
 }

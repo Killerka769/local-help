@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireSuperAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/adminLog";
+import { handleRouteError } from "@/lib/http";
 
 export async function PUT(
   req: NextRequest,
@@ -63,10 +64,6 @@ export async function PUT(
 
     return NextResponse.json({ user });
   } catch (error) {
-    console.error("[SET_ROLE_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[SET_ROLE_ERROR]");
   }
 }

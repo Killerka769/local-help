@@ -13,9 +13,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (newPassword.length < 6) {
+    if (newPassword.length < 8) {
       return NextResponse.json(
-        { error: "Пароль должен быть минимум 6 символов" },
+        { error: "Пароль должен быть минимум 8 символов" },
         { status: 400 }
       );
     }

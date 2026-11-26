@@ -23,8 +23,8 @@ function ResetPasswordForm() {
       return;
     }
 
-    if (password.length < 6) {
-      setError("Пароль должен быть минимум 6 символов");
+    if (password.length < 8) {
+      setError("Пароль должен быть минимум 8 символов");
       return;
     }
 

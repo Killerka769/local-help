@@ -12,6 +12,7 @@ interface Notification {
 
 interface NotificationsResponse {
   notifications: Notification[];
+  unreadCount?: number;
   pagination: {
     page: number;
     limit: number;
@@ -30,6 +31,7 @@ export const useNotifications = (page: number = 1) => {
       if (!res.ok) throw new Error("Ошибка загрузки");
       return res.json() as Promise<NotificationsResponse>;
     },
+    refetchInterval: 60_000,
   });
 
   const markAsRead = useMutation({
@@ -47,7 +49,8 @@ export const useNotifications = (page: number = 1) => {
     },
   });
 
-  const unreadCount = data?.notifications?.filter((n) => !n.isRead).length || 0;
+  const unreadCount =
+    data?.unreadCount ?? data?.notifications?.filter((n) => !n.isRead).length ?? 0;
 
   return {
     notifications: data?.notifications || [],

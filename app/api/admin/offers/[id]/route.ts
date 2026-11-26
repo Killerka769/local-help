@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/adminLog";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireAdmin } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
 
 export async function DELETE(
   req: NextRequest,
@@ -11,23 +10,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const admin = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { id: true, name: true, role: true },
-    });
-
-    if (!admin || (admin.role !== "ADMIN" && admin.role !== "SUPER_ADMIN")) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
-    }
+    const admin = await requireAdmin(req);
 
     // Получаем информацию об отклике для лога
     const offer = await prisma.offer.findUnique({
@@ -54,10 +37,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[ADMIN_DELETE_OFFER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADMIN_DELETE_OFFER_ERROR]");
   }
 }

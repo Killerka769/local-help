@@ -163,8 +163,8 @@ export default function SettingsPage() {
     setPasswordError("");
     setPasswordSuccess("");
 
-    if (newPassword.length < 6) {
-      setPasswordError("Новый пароль должен быть минимум 6 символов");
+    if (newPassword.length < 8) {
+      setPasswordError("Новый пароль должен быть минимум 8 символов");
       return;
     }
 

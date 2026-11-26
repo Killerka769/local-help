@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { handleRouteError } from "@/lib/http";
 
 export async function PUT(
   req: NextRequest,
@@ -19,9 +20,26 @@ export async function PUT(
       );
     }
 
+    const target = await prisma.user.findUnique({
+      where: { id },
+      select: { role: true },
+    });
+    if (!target) {
+      return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+    }
+    if (target.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Нельзя заблокировать главного администратора" },
+        { status: 403 }
+      );
+    }
+
     const user = await prisma.user.update({
       where: { id },
-      data: { isBlocked },
+      data: {
+        isBlocked,
+        sessionVersion: isBlocked ? { increment: 1 } : undefined,
+      },
       select: {
         id: true,
         name: true,
@@ -32,10 +50,6 @@ export async function PUT(
 
     return NextResponse.json({ user });
   } catch (error) {
-    console.error("[BLOCK_USER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[BLOCK_USER_ERROR]");
   }
 }

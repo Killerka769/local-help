@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { handleRouteError } from "@/lib/http";
 
 export async function GET(req: NextRequest) {
   try {
@@ -51,10 +52,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[STATS_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[STATS_ERROR]");
   }
 }

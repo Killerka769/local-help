@@ -1,41 +1,30 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const body = await req.json();
-    const { id } = body;
+    const user = await requireUser(req, { allowBlocked: true });
+    const { id } = await req.json();
 
     if (id === "all") {
       await prisma.notification.updateMany({
-        where: { userId, isRead: false },
+        where: { userId: user.id, isRead: false },
         data: { isRead: true },
       });
     } else {
-      await prisma.notification.update({
-        where: { id },
+      const result = await prisma.notification.updateMany({
+        where: { id, userId: user.id },
         data: { isRead: true },
       });
+      if (result.count === 0) {
+        throw new HttpError(404, "Уведомление не найдено");
+      }
     }
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[MARK_READ_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[MARK_READ_ERROR]");
   }
 }

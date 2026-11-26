@@ -1,80 +1,79 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
+    const authUser = await requireUser(req, { allowBlocked: true });
     const { password } = await req.json();
 
     if (!password) {
-      return NextResponse.json(
-        { error: "Введите пароль для подтверждения" },
-        { status: 400 }
-      );
+      throw new HttpError(400, "Введите пароль для подтверждения");
     }
 
-    // Получаем пользователя с паролем
     const user = await prisma.user.findUnique({
-      where: { id: userId },
+      where: { id: authUser.id },
       select: { passwordHash: true },
     });
 
     if (!user) {
-      return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+      throw new HttpError(404, "Пользователь не найден");
     }
 
-    // Проверяем пароль
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-
     if (!isPasswordValid) {
-      return NextResponse.json(
-        { error: "Неверный пароль" },
-        { status: 400 }
-      );
+      throw new HttpError(400, "Неверный пароль");
     }
 
-    // Удаляем все связанные данные
-    await prisma.$transaction([
-      // Удаляем отклики пользователя
-      prisma.offer.deleteMany({ where: { userId } }),
-      // Удаляем избранное
-      prisma.favorite.deleteMany({ where: { userId } }),
-      // Удаляем жалобы, отправленные пользователем
-      prisma.complaint.deleteMany({ where: { userId } }),
-      // Удаляем отзывы, написанные пользователем
-      prisma.review.deleteMany({ where: { fromUserId: userId } }),
-      // Удаляем заявки пользователя (каскадно удалятся отклики на них)
-      prisma.request.deleteMany({ where: { authorId: userId } }),
-      // Удаляем уведомления
-      prisma.notification.deleteMany({ where: { userId } }),
-      // Удаляем заявки на города
-      prisma.cityRequest.deleteMany({ where: { userId } }),
-      // Наконец, удаляем самого пользователя
-      prisma.user.delete({ where: { id: userId } }),
-    ]);
+    const userId = authUser.id;
 
-    // Очищаем cookie с токеном
+    await prisma.$transaction(async (tx) => {
+      const ownRequests = await tx.request.findMany({
+        where: { authorId: userId },
+        select: { id: true },
+      });
+      const requestIds = ownRequests.map((r) => r.id);
+
+      await tx.review.deleteMany({
+        where: {
+          OR: [
+            { fromUserId: userId },
+            { toUserId: userId },
+            { requestId: { in: requestIds } },
+          ],
+        },
+      });
+      await tx.offer.deleteMany({
+        where: {
+          OR: [{ userId }, { requestId: { in: requestIds } }],
+        },
+      });
+      await tx.favorite.deleteMany({
+        where: {
+          OR: [
+            { userId },
+            ...(requestIds.length > 0 ? [{ requestId: { in: requestIds } }] : []),
+          ],
+        },
+      });
+      await tx.complaint.deleteMany({ where: { userId } });
+      await tx.notification.deleteMany({ where: { userId } });
+      await tx.cityRequest.deleteMany({ where: { userId } });
+      await tx.userDailyLimit.deleteMany({ where: { userId } });
+      await tx.emailVerificationToken.deleteMany({ where: { userId } });
+      await tx.passwordResetToken.deleteMany({ where: { userId } });
+      if (requestIds.length > 0) {
+        await tx.request.deleteMany({ where: { id: { in: requestIds } } });
+      }
+      await tx.user.delete({ where: { id: userId } });
+    });
+
     const response = NextResponse.json({ success: true });
     response.cookies.delete("token");
-
     return response;
   } catch (error) {
-    console.error("[DELETE_ACCOUNT_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[DELETE_ACCOUNT_ERROR]");
   }
 }

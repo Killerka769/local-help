@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/adminLog";
+import { handleRouteError } from "@/lib/http";
 
 export async function DELETE(
   req: NextRequest,
@@ -18,6 +19,7 @@ export async function DELETE(
     });
 
     await prisma.$transaction([
+      prisma.review.deleteMany({ where: { requestId: id } }),
       prisma.offer.deleteMany({ where: { requestId: id } }),
       prisma.favorite.deleteMany({ where: { requestId: id } }),
       prisma.request.delete({ where: { id } }),
@@ -37,10 +39,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[ADMIN_DELETE_REQUEST_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[ADMIN_DELETE_REQUEST_ERROR]");
   }
 }
