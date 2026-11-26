@@ -296,7 +296,7 @@ export default function Home() {
               <div className={styles.securityCard}>
                 <div className={styles.securityIcon}>🔒</div>
                 <h3>Контакты после выбора</h3>
-                <p>Телефон и адрес получает только выбранный исполнитель</p>
+                <p>Телефон получает только выбранный исполнитель. В ленте — город и район</p>
               </div>
               <div className={styles.securityCard}>
                 <div className={styles.securityIcon}>🤝</div>

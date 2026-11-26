@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { getSiteUrl } from "@/lib/jwt";
 
 interface UserLayoutProps {
   children: React.ReactNode;
@@ -30,7 +31,7 @@ export async function generateMetadata({ params }: UserLayoutProps): Promise<Met
     openGraph: {
       title,
       description,
-      url: `https://localhelp.ru/profile/${id}`,
+      url: `${getSiteUrl()}/profile/${id}`,
     },
   };
 }

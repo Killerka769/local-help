@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
+import { SUPPORT_CONTACT } from "@/lib/support";
 import styles from "./page.module.scss";
 
 interface BanInfo {
@@ -117,7 +118,7 @@ export default function BlockedPage() {
           </div>
 
           <p className={styles.footerText}>
-            Если вы считаете, что блокировка ошибочна, свяжитесь с поддержкой: support@localhelp.ru
+            Если вы считаете, что блокировка ошибочна, свяжитесь с поддержкой: {SUPPORT_CONTACT || "контакт в настройках сайта"}
           </p>
         </div>
       </div>
