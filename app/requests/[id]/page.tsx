@@ -142,6 +142,22 @@ export default function RequestPage({ params }: PageProps) {
     },
   });
 
+  const finalizeMutation = useMutation({
+    mutationFn: async (offerId: string) => {
+      const res = await fetch(`/api/offers/${offerId}/finalize`, { method: "POST" });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["request", requestId] });
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
+    },
+    onError: (error: Error) => {
+      alert(error.message);
+    },
+  });
+
   const updateMutation = useMutation({
     mutationFn: async (data: any) => {
       const res = await fetch(`/api/requests/${requestId}`, {
@@ -251,7 +267,11 @@ export default function RequestPage({ params }: PageProps) {
   };
 
   const handleComplete = () => {
-    if (confirm("Подтвердите выполнение заявки. После этого изменить будет нельзя.")) {
+    if (
+      confirm(
+        "Закрыть заявку БЕЗ выполнения? Отзыв оставить будет нельзя. Если работа сделана — дождитесь «Я выполнил» от исполнителя и нажмите «Подтвердить выполнение»."
+      )
+    ) {
       completeMutation.mutate();
     }
   };
@@ -330,6 +350,7 @@ export default function RequestPage({ params }: PageProps) {
   if (!request) return null;
 
   const hasApprovedOffer = request.offers.some((o) => o.status === "approved");
+  const executorDoneOffer = request.offers.find((o) => o.status === "completed_by_executor");
   const hasUserOffered = request.offers.some((offer) => offer.user.id === user?.id);
   const canOfferNow = request.canOffer && user && !request.isAuthor && request.status === "active" && !hasUserOffered;
   const reviewTargetData = getReviewTarget();
@@ -422,13 +443,23 @@ export default function RequestPage({ params }: PageProps) {
             </div>
           )}
 
-          {request.isAuthor && request.status === "active" && hasApprovedOffer && (
+          {request.isAuthor && request.status === "active" && executorDoneOffer && (
+            <button
+              onClick={() => finalizeMutation.mutate(executorDoneOffer.id)}
+              disabled={finalizeMutation.isPending}
+              className={styles.completeBtn}
+            >
+              {finalizeMutation.isPending ? "Подтверждение..." : "Подтвердить выполнение"}
+            </button>
+          )}
+
+          {request.isAuthor && request.status === "active" && (hasApprovedOffer || executorDoneOffer) && (
             <button
               onClick={handleComplete}
               disabled={completeMutation.isPending}
-              className={styles.completeBtn}
+              className={styles.deleteBtn}
             >
-              {completeMutation.isPending ? "Завершение..." : "✅ Заявка выполнена"}
+              {completeMutation.isPending ? "Закрытие..." : "Закрыть без выполнения"}
             </button>
           )}
 

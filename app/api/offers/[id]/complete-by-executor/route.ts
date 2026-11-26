@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
 
 export async function POST(
   req: NextRequest,
@@ -10,26 +9,7 @@ export async function POST(
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const userBlock = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isBlocked: true, role: true },
-    });
-    
-    if (userBlock?.isBlocked) {
-      return NextResponse.json(
-        { error: 'Ваш аккаунт заблокирован' },
-        { status: 403 }
-      );
-    }
+    const user = await requireUser(req);
 
     const offer = await prisma.offer.findUnique({
       where: { id },
@@ -37,38 +17,39 @@ export async function POST(
     });
 
     if (!offer) {
-      return NextResponse.json({ error: "Отклик не найден" }, { status: 404 });
+      throw new HttpError(404, "Отклик не найден");
     }
 
-    if (offer.userId !== userId) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
+    if (offer.userId !== user.id) {
+      throw new HttpError(403, "Нет прав");
     }
 
     if (offer.status !== "approved") {
-      return NextResponse.json(
-        { error: "Отклик ещё не одобрен заказчиком" },
-        { status: 400 }
-      );
+      throw new HttpError(400, "Отклик ещё не одобрен заказчиком");
     }
 
     if (offer.request.status !== "active") {
-      return NextResponse.json(
-        { error: "Заявка уже закрыта" },
-        { status: 400 }
-      );
+      throw new HttpError(400, "Заявка уже закрыта");
     }
 
-    await prisma.offer.update({
-      where: { id },
-      data: { status: "completed_by_executor" },
+    await prisma.$transaction(async (tx) => {
+      await tx.offer.update({
+        where: { id },
+        data: { status: "completed_by_executor" },
+      });
+      await tx.notification.create({
+        data: {
+          userId: offer.request.authorId,
+          type: "executor_completed",
+          title: "Исполнитель завершил работу",
+          message: `Подтвердите выполнение заявки «${offer.request.title}», если работа сделана. После этого можно оставить отзыв.`,
+          link: `/offers/${offer.id}`,
+        },
+      });
     });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[COMPLETE_BY_EXECUTOR_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[COMPLETE_BY_EXECUTOR_ERROR]");
   }
 }
