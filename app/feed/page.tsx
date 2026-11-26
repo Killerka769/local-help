@@ -266,11 +266,18 @@ export default function FeedPage() {
           </div>
         ) : requests.length === 0 ? (
           <div className={styles.emptyCard}>
-            <p className={styles.emptyText}>Ничего не найдено</p>
-            <p className={styles.emptyHint}>Попробуйте изменить параметры поиска или город</p>
-            <button onClick={resetFilters} className={styles.emptyBtn}>
-              Сбросить фильтры
-            </button>
+            <p className={styles.emptyText}>В вашем районе пока тихо</p>
+            <p className={styles.emptyHint}>
+              Оставьте первую заявку — соседи увидят. В ленте будут город и район, без дома и квартиры.
+            </p>
+            <div className={styles.emptyActions}>
+              <button onClick={() => router.push("/requests/new")} className={styles.emptyBtn}>
+                Создать заявку
+              </button>
+              <button onClick={resetFilters} className={styles.emptyBtnSecondary}>
+                Сбросить фильтры
+              </button>
+            </div>
           </div>
         ) : (
           <>

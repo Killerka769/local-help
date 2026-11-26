@@ -3,9 +3,14 @@ import "./globals.scss";
 import Header from "./components/layout/Header/Header";
 import Footer from "./components/layout/Footer/Footer";
 import Providers from "./providers";
-import EmailWarning from "./components/EmailWarning/EmailWarning";
+
+import { getSiteUrl } from "@/lib/jwt";
+
+const siteUrl = getSiteUrl();
+const hasPublicSite = Boolean(process.env.NEXT_PUBLIC_SITE_URL);
 
 export const metadata: Metadata = {
+  metadataBase: new URL(siteUrl),
   title: {
     default: "Local Help — помощь соседей",
     template: "%s | Local Help",
@@ -26,30 +31,25 @@ export const metadata: Metadata = {
   authors: [{ name: "Local Help" }],
   creator: "Local Help",
   publisher: "Local Help",
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      "max-video-preview": -1,
-      "max-image-preview": "large",
-      "max-snippet": -1,
-    },
-  },
+  robots: hasPublicSite
+    ? {
+        index: true,
+        follow: true,
+        googleBot: {
+          index: true,
+          follow: true,
+          "max-video-preview": -1,
+          "max-image-preview": "large",
+          "max-snippet": -1,
+        },
+      }
+    : { index: false, follow: false },
   openGraph: {
     title: "Local Help — помощь соседей",
     description: "Быстрая помощь по дому от соседей. Ремонт, переезд, присмотр, бытовые проблемы",
-    url: "https://localhelp.ru",
+    url: siteUrl,
     siteName: "Local Help",
-    images: [
-      {
-        url: "/og-image.jpg",
-        width: 1200,
-        height: 630,
-        alt: "Local Help — помощь соседей",
-      },
-    ],
+    images: [],
     locale: "ru_RU",
     type: "website",
   },
@@ -57,19 +57,15 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Local Help — помощь соседей",
     description: "Быстрая помощь по дому от соседей",
-    images: ["/og-image.jpg"],
+    images: [],
   },
   icons: {
     icon: "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   manifest: "/manifest.json",
-  verification: {
-    google: "ваш_код_верификации", // добавить позже
-    yandex: "ваш_код_верификации", // добавить позже
-  },
   alternates: {
-    canonical: "https://localhelp.ru",
+    canonical: hasPublicSite ? siteUrl : undefined,
   },
 };
 
@@ -83,7 +79,6 @@ export default function RootLayout({
       <body>
         <Providers>
           <Header />
-          {/* <EmailWarning /> */}
           {children}
           <Footer />
         </Providers>

@@ -77,11 +77,11 @@ export default function Home() {
                 </>
               ) : (
                 <>
-                  <Link href="/login" className={styles.btnPrimary}>
-                    Нужна помощь
+                  <Link href="/feed" className={styles.btnPrimary}>
+                    Смотреть заявки
                   </Link>
-                  <Link href="/login" className={styles.btnSecondary}>
-                    Могу помочь
+                  <Link href="/register" className={styles.btnSecondary}>
+                    Создать заявку
                   </Link>
                 </>
               )}

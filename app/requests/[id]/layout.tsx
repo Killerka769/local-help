@@ -1,41 +1,49 @@
-import { prisma } from "@/lib/prisma";
-import { notFound } from "next/navigation";
 import type { Metadata } from "next";
+import { prisma } from "@/lib/prisma";
+import { getSiteUrl } from "@/lib/jwt";
 
-interface RequestLayoutProps {
-  children: React.ReactNode;
+export async function generateMetadata({
+  params,
+}: {
   params: Promise<{ id: string }>;
-}
-
-export async function generateMetadata({ params }: RequestLayoutProps): Promise<Metadata> {
+}): Promise<Metadata> {
   const { id } = await params;
-  
+  const base = getSiteUrl();
   const request = await prisma.request.findUnique({
     where: { id },
-    include: { author: { select: { name: true } } },
+    select: {
+      title: true,
+      description: true,
+      address: true,
+      city: { select: { name: true } },
+    },
   });
 
   if (!request) {
-    return {
-      title: "Заявка не найдена",
-    };
+    return { title: "Заявка" };
   }
 
-  const title = `${request.title}`;
-  const description = request.description.slice(0, 160);
-  const budgetText = request.budget ? `Бюджет: ${request.budget.toLocaleString()} ₽. ` : "";
+  const loc = [request.city?.name, request.address].filter(Boolean).join(", ");
+  const description = `${loc}. ${request.description}`.slice(0, 180);
 
   return {
-    title,
-    description: `${budgetText}Автор: ${request.author.name}. ${description}`,
+    title: request.title,
+    description,
     openGraph: {
-      title,
-      description: `${budgetText}Автор: ${request.author.name}. ${description}`,
-      //url: `https://localhelp.ru/requests/${id}`,
+      title: request.title,
+      description,
+      url: `${base}/requests/${id}`,
+      locale: "ru_RU",
+      type: "article",
+      siteName: "Local Help",
     },
   };
 }
 
-export default function RequestLayout({ children }: RequestLayoutProps) {
-  return <>{children}</>;
+export default function RequestLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return children;
 }

@@ -369,6 +369,9 @@ export default function RequestPage({ params }: PageProps) {
               <span>{formatDate(request.createdAt)}</span>
             </div>
           </div>
+          <p className={styles.safetyNote}>
+            Встречайтесь у подъезда или в людном месте. Пускать в квартиру не обязательно.
+          </p>
 
           <div className={styles.authorCard}>
             <div
