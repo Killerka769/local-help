@@ -28,11 +28,12 @@ interface OfferData {
     id: string;
     title: string;
     description: string;
-    address: string;
+    district?: string | null;
     budget: number | null;
     deadline: number;
     status: string;
     createdAt: string;
+    city?: { name: string } | null;
     author: {
       id: string;
       name: string;
@@ -41,7 +42,6 @@ interface OfferData {
     };
   };
   canApprove: boolean;
-  canViewAddress: boolean;
   canViewPhone: boolean;
 }
 
@@ -260,12 +260,12 @@ export default function OfferPage({ params }: PageProps) {
                 <span>{formatBudget(offer.request.budget)}</span>
               </div>
 
-              {offer.canViewAddress && (
-                <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>📍 Адрес:</span>
-                  <span className={styles.address}>{offer.request.address}</span>
-                </div>
-              )}
+              <div className={styles.infoRow}>
+                <span className={styles.infoLabel}>📍 Где:</span>
+                <span className={styles.address}>
+                  {[offer.request.city?.name, offer.request.district].filter(Boolean).join(", ") || "Город не указан"}
+                </span>
+              </div>
 
               {offer.canViewPhone && offer.request.author.phone && (
                 <div className={styles.infoRow}>

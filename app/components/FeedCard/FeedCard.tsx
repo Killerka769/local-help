@@ -10,7 +10,7 @@ interface FeedCardProps {
     id: string;
     title: string;
     description: string;
-    address: string;
+    district?: string;
     budget: number | null;
     deadline: number;
     createdAt: string;
@@ -60,8 +60,9 @@ function FeedCard({ request, formatBudget, formatDate, getDeadlineText, getDeadl
   const truncatedDescription = truncateText(request.description, 100);
   // Обрезаем имя автора (максимум 20 символов)
   const truncatedAuthorName = truncateText(request.author.name, 20);
-  // Обрезаем адрес (максимум 35 символов)
-  const truncatedAddress = truncateText(request.address, 35);
+  const locationLabel = [request.city?.name, request.district]
+    .filter(Boolean)
+    .join(", ") || "Город не указан";
 
   return (
     <div
@@ -89,20 +90,14 @@ function FeedCard({ request, formatBudget, formatDate, getDeadlineText, getDeadl
       </p>
 
       <div className={styles.cardMeta}>
-        <div className={styles.metaItem} title={request.address}>
+        <div className={styles.metaItem} title={locationLabel}>
           <span className={styles.metaIcon}>📍</span>
-          <span className={styles.metaText}>{truncatedAddress}</span>
+          <span className={styles.metaText}>{locationLabel}</span>
         </div>
         <div className={`${styles.metaItem} ${getDeadlineClass(request.deadline)}`}>
           <span className={styles.metaIcon}>⏱️</span>
           <span className={styles.metaText}>{getDeadlineText(request.deadline)}</span>
         </div>
-        {request.city && (
-          <div className={styles.metaItem}>
-            <span className={styles.metaIcon}>🏙️</span>
-            <span className={styles.metaText}>{request.city.name}</span>
-          </div>
-        )}
       </div>
 
       <div className={styles.cardFooter}>

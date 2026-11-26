@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { getOptionalUser, requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
+import { isValidText } from "@/utils/badWords";
+import {
+  viewerCanSeeAuthorPhone,
+  viewerCanSeeOfferPhone,
+} from "@/lib/contacts";
+import { districtError, readDistrict } from "@/lib/district";
 
 export async function GET(
   req: NextRequest,
@@ -22,6 +27,9 @@ export async function GET(
             phone: true,
             description: true,
           },
+        },
+        city: {
+          select: { id: true, name: true },
         },
         offers: {
           include: {
@@ -46,125 +54,133 @@ export async function GET(
       return NextResponse.json({ error: "Заявка не найдена" }, { status: 404 });
     }
 
-    // Получаем текущего пользователя из токена (если есть)
-    let currentUserId: string | null = null;
+    const currentUser = await getOptionalUser(req);
+    const currentUserId = currentUser?.id ?? null;
+
     let hasUserReviewed = false;
-    const token = req.cookies.get("token")?.value;
-    
-    if (token) {
-      try {
-        const { payload } = await jwtVerify(token, secret);
-        currentUserId = payload.userId as string;
-        
-        // Проверяем, оставлял ли пользователь отзыв на эту заявку
-        const existingReview = await prisma.review.findUnique({
-          where: {
-            requestId_fromUserId: {
-              requestId: id,
-              fromUserId: currentUserId,
-            },
+    if (currentUserId) {
+      const existingReview = await prisma.review.findUnique({
+        where: {
+          requestId_fromUserId: {
+            requestId: id,
+            fromUserId: currentUserId,
           },
-        });
-        hasUserReviewed = !!existingReview;
-      } catch {
-        // Токен невалидный — игнорируем
-      }
+        },
+      });
+      hasUserReviewed = !!existingReview;
     }
 
-    // Если текущий пользователь — автор, показываем телефоны откликнувшихся
-    // Если нет — скрываем контакты
     const isAuthor = currentUserId === request.authorId;
-    const isOfferUser = request.offers.some((offer) => offer.userId === currentUserId);
+    const canViewAuthorPhone = viewerCanSeeAuthorPhone({
+      viewerId: currentUserId,
+      authorId: request.authorId,
+      offers: request.offers,
+    });
 
-    // Формируем ответ с учётом прав
     const responseData = {
-      ...request,
+      id: request.id,
+      title: request.title,
+      description: request.description,
+      budget: request.budget,
+      deadline: request.deadline,
+      status: request.status,
+      authorId: request.authorId,
+      cityId: request.cityId,
+      createdAt: request.createdAt,
+      updatedAt: request.updatedAt,
+      city: request.city,
+      district: request.address,
       author: {
-        ...request.author,
-        phone: isAuthor ? request.author.phone : undefined,
+        id: request.author.id,
+        name: request.author.name,
+        avatar: request.author.avatar,
+        description: request.author.description,
+        phone: canViewAuthorPhone ? request.author.phone : undefined,
       },
       offers: request.offers.map((offer) => ({
-        ...offer,
+        id: offer.id,
+        comment: offer.comment,
+        status: offer.status,
+        requestId: offer.requestId,
+        userId: offer.userId,
+        createdAt: offer.createdAt,
+        updatedAt: offer.updatedAt,
         user: {
-          ...offer.user,
-          phone: isAuthor || isOfferUser ? offer.user.phone : undefined,
+          id: offer.user.id,
+          name: offer.user.name,
+          avatar: offer.user.avatar,
+          description: offer.user.description,
+          phone: viewerCanSeeOfferPhone({
+            viewerId: currentUserId,
+            authorId: request.authorId,
+            offerUserId: offer.userId,
+            offerStatus: offer.status,
+          })
+            ? offer.user.phone
+            : undefined,
         },
-        canApprove: isAuthor && offer.status === "pending",
+        canApprove: isAuthor && offer.status === "pending" && request.status === "active",
       })),
       canOffer: !isAuthor && currentUserId !== null,
       isAuthor,
-      hasUserReviewed, // ← добавляем проверку на отзыв
+      canViewPhone: canViewAuthorPhone,
+      hasUserReviewed,
     };
 
     return NextResponse.json(responseData);
   } catch (error) {
-    console.error("[GET_REQUEST_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[GET_REQUEST_ERROR]");
   }
 }
 
-// PUT — обновление заявки (только автор)
 export async function PUT(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
+    const user = await requireUser(req);
     const body = await req.json();
-    const { title, description, address, budget, deadline } = body;
+    const { title, description, budget, deadline } = body;
+    const district = readDistrict(body);
 
-    // Проверяем, существует ли заявка и принадлежит ли она пользователю
     const existingRequest = await prisma.request.findUnique({
       where: { id },
     });
 
     if (!existingRequest) {
-      return NextResponse.json({ error: "Заявка не найдена" }, { status: 404 });
+      throw new HttpError(404, "Заявка не найдена");
     }
 
-    if (existingRequest.authorId !== userId) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
+    if (existingRequest.authorId !== user.id) {
+      throw new HttpError(403, "Нет прав");
     }
 
     if (existingRequest.status !== "active") {
-      return NextResponse.json(
-        { error: "Нельзя редактировать закрытую заявку" },
-        { status: 400 }
-      );
+      throw new HttpError(400, "Нельзя редактировать закрытую заявку");
     }
 
-    // Валидация
-    if (title && title.length < 5) {
-      return NextResponse.json(
-        { error: "Заголовок должен быть минимум 5 символов" },
-        { status: 400 }
-      );
+    if (title) {
+      const check = isValidText(title, "Заголовок");
+      if (!check.valid) throw new HttpError(400, check.error || "Неверный заголовок");
+      if (title.length < 5 || title.length > 40) {
+        throw new HttpError(400, "Заголовок: от 5 до 40 символов");
+      }
     }
 
-    if (description && description.length < 20) {
-      return NextResponse.json(
-        { error: "Описание должно быть минимум 20 символов" },
-        { status: 400 }
-      );
+    if (description) {
+      const check = isValidText(description, "Описание");
+      if (!check.valid) throw new HttpError(400, check.error || "Неверное описание");
+      if (description.length < 60 || description.length > 1500) {
+        throw new HttpError(400, "Описание: от 60 до 1500 символов");
+      }
     }
 
-    if (address && address.length < 5) {
-      return NextResponse.json(
-        { error: "Адрес должен быть минимум 5 символов" },
-        { status: 400 }
-      );
+    if (district) {
+      const check = isValidText(district, "Район");
+      if (!check.valid) throw new HttpError(400, check.error || "Неверный район");
+      const lengthError = districtError(district);
+      if (lengthError) throw new HttpError(400, lengthError);
     }
 
     const updatedRequest = await prisma.request.update({
@@ -172,69 +188,51 @@ export async function PUT(
       data: {
         title: title !== undefined ? title : undefined,
         description: description !== undefined ? description : undefined,
-        address: address !== undefined ? address : undefined,
+        address: district ? district : undefined,
         budget: budget !== undefined ? (budget ? parseInt(budget) : null) : undefined,
         deadline: deadline !== undefined ? parseInt(deadline) : undefined,
       },
     });
 
-    return NextResponse.json({ request: updatedRequest });
+    const { address: savedDistrict, ...rest } = updatedRequest;
+    return NextResponse.json({
+      request: { ...rest, district: savedDistrict },
+    });
   } catch (error) {
-    console.error("[UPDATE_REQUEST_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[UPDATE_REQUEST_ERROR]");
   }
 }
 
-// DELETE — удаление заявки (только автор)
 export async function DELETE(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const user = await requireUser(req);
 
     const existingRequest = await prisma.request.findUnique({
       where: { id },
-      include: {
-        offers: true,
-      },
+      include: { offers: true },
     });
 
     if (!existingRequest) {
-      return NextResponse.json({ error: "Заявка не найдена" }, { status: 404 });
+      throw new HttpError(404, "Заявка не найдена");
     }
 
-    if (existingRequest.authorId !== userId) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
+    if (existingRequest.authorId !== user.id) {
+      throw new HttpError(403, "Нет прав");
     }
 
-    // Удаляем связанные отклики, затем заявку
     await prisma.$transaction([
-      prisma.offer.deleteMany({
-        where: { requestId: id },
-      }),
-      prisma.request.delete({
-        where: { id },
-      }),
+      prisma.review.deleteMany({ where: { requestId: id } }),
+      prisma.offer.deleteMany({ where: { requestId: id } }),
+      prisma.favorite.deleteMany({ where: { requestId: id } }),
+      prisma.request.delete({ where: { id } }),
     ]);
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[DELETE_REQUEST_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[DELETE_REQUEST_ERROR]");
   }
 }

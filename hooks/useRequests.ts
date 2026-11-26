@@ -4,7 +4,8 @@ interface Request {
   id: string;
   title: string;
   description: string;
-  address: string;
+  district?: string;
+  address?: string;
   budget: number | null;
   deadline: number;
   status: string;
@@ -20,7 +21,7 @@ interface Request {
 interface CreateRequestData {
   title: string;
   description: string;
-  address: string;
+  district: string;
   budget?: number;
   deadline: number;
 }

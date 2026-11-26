@@ -4,7 +4,8 @@ interface FavoriteRequest {
   id: string;
   title: string;
   description: string;
-  address: string;
+  district?: string;
+  city?: { name: string } | null;
   budget: number | null;
   deadline: number;
   status: string;

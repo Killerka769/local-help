@@ -29,7 +29,7 @@ interface Request {
   id: string;
   title: string;
   description: string;
-  address: string;
+  district?: string;
   budget: number | null;
   deadline: number;
   status: string;
@@ -176,7 +176,7 @@ function MyRequestsList() {
               {request.description.length > 100 ? `${request.description.slice(0, 100)}...` : request.description}
             </p>
             <div className={styles.requestMeta}>
-              <span>📍 {request.address}</span>
+              <span>📍 {request.district || "Район не указан"}</span>
               <span>⏱️ {getDeadlineText(request.deadline)}</span>
               <span className={styles.requestStatus}>{getStatusText(request.status)}</span>
             </div>

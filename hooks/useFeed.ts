@@ -15,7 +15,7 @@ interface FeedRequest {
   id: string;
   title: string;
   description: string;
-  address: string;
+  district?: string;
   budget: number | null;
   deadline: number;
   status: string;

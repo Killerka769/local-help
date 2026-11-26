@@ -21,17 +21,13 @@ const requestSchema = z.object({
     .string()
     .min(60, "Опишите задачу подробнее (минимум 60 символов)")
     .max(1500, "Описание не должно превышать 1500 символов"),
-  address: z
+  district: z
     .string()
-    .min(8, "Укажите адрес или район")
-    .max(30, "Адрес не должен превышать 30 символов")
+    .min(3, "Укажите район или ориентир")
+    .max(80, "Район не должен превышать 80 символов")
     .refine(
       (val) => !/^[0-9\s\-_]+$/.test(val),
-      { message: "Укажите реальный адрес, а не только цифры" }
-    )
-    .refine(
-      (val) => !/(здесь|тут|там|дом|улица)\s*(пиши|пишите|надо)?$/i.test(val),
-      { message: "Укажите конкретный адрес или район" }
+      { message: "Укажите район или ориентир, а не только цифры" }
     ),
   budget: z.string().optional(),
   deadline: z.string().min(1, "Выберите срок"),
@@ -57,7 +53,7 @@ export default function NewRequestPage() {
     defaultValues: {
       title: "",
       description: "",
-      address: "",
+      district: "",
       budget: "",
       deadline: "7",
     },
@@ -65,7 +61,7 @@ export default function NewRequestPage() {
 
   const watchTitle = watch("title");
   const watchDescription = watch("description");
-  const watchAddress = watch("address");
+  const watchDistrict = watch("district");
 
 
   // Проверка авторизации
@@ -97,7 +93,7 @@ export default function NewRequestPage() {
     const requestData = {
       title: data.title,
       description: data.description,
-      address: data.address,
+      district: data.district,
       budget: data.budget ? parseInt(data.budget, 10) : undefined,
       deadline: parseInt(data.deadline, 10),
     };
@@ -158,20 +154,23 @@ export default function NewRequestPage() {
               </div>
 
               <div className={styles.field}>
-                <label htmlFor="address">Адрес или район</label>
+                <label htmlFor="district">Район или ориентир</label>
                 <input
-                  id="address"
+                  id="district"
                   type="text"
-                  placeholder="Например: ул. Ленина, д. 5 или район Солнечный"
-                  className={`${styles.input} ${errors.address ? styles.inputError : ""}`}
-                  maxLength={30}
-                  {...register("address")}
+                  placeholder="Например: Тарки, у мечети"
+                  className={`${styles.input} ${errors.district ? styles.inputError : ""}`}
+                  maxLength={80}
+                  {...register("district")}
                 />
                 <span className={styles.charCount}>
-                  {watchAddress?.length || 0}/30 символов
+                  {watchDistrict?.length || 0}/80 символов
                 </span>
-                {errors.address && (
-                  <span className={styles.error}>{errors.address.message}</span>
+                <span className={styles.hint}>
+                  В ленте видны город и район. Дом и квартиру не пишите — точный адрес обсудите по телефону после одобрения отклика.
+                </span>
+                {errors.district && (
+                  <span className={styles.error}>{errors.district.message}</span>
                 )}
               </div>
 

@@ -1,37 +1,58 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
 import { isValidText } from "@/utils/badWords";
 import { getRateLimitKey, rateLimit } from "@/lib/rateLimit";
 import { checkDailyLimit, incrementDailyLimit } from "@/lib/dailyLimits";
+import { requireUser, getOptionalUser } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
+import { computeExpiresAt, expireOverdueRequests } from "@/lib/requestExpiry";
+import { districtError, readDistrict } from "@/lib/district";
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
 const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 10 });
 
-// POST — создание заявки
+const PUBLIC_SELECT = {
+  id: true,
+  title: true,
+  description: true,
+  address: true,
+  budget: true,
+  deadline: true,
+  status: true,
+  createdAt: true,
+  cityId: true,
+  author: {
+    select: {
+      id: true,
+      name: true,
+      avatar: true,
+    },
+  },
+  city: {
+    select: {
+      id: true,
+      name: true,
+    },
+  },
+} as const;
+
+function toPublicRequest<T extends { address: string }>(row: T) {
+  const { address, ...rest } = row;
+  return { ...rest, district: address };
+}
+
 export async function POST(req: NextRequest) {
   try {
-    // Rate limiting
-    const rateKey = getRateLimitKey(req, "requests");
-    const { success, remaining, resetAt } = limiter.check(rateKey);
-    
+    const { success } = limiter.check(getRateLimitKey(req, "requests"));
     if (!success) {
       return NextResponse.json(
         { error: "Слишком много запросов. Подождите немного." },
         { status: 429 }
       );
     }
-    const token = req.cookies.get("token")?.value;
 
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
+    const user = await requireUser(req);
 
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    // Проверка лимита
-    const limitCheck = await checkDailyLimit(userId, "request");
+    const limitCheck = await checkDailyLimit(user.id, "request");
     if (!limitCheck.allowed) {
       return NextResponse.json(
         { error: `Вы превысили лимит на создание заявок. Можно создать не более ${limitCheck.limit} в день.` },
@@ -39,48 +60,34 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const userBlock = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { isBlocked: true, role: true },
-    });
-    
-    if (userBlock?.isBlocked) {
-      return NextResponse.json(
-        { error: 'Ваш аккаунт заблокирован' },
-        { status: 403 }
-      );
-    }
-
     const body = await req.json();
-    const { title, description, address, budget, deadline } = body;
+    const { title, description, budget, deadline } = body;
+    const district = readDistrict(body);
 
-    // Валидация
-    if (!title || !description || !address) {
+    if (!title || !description || !district) {
       return NextResponse.json(
-        { error: "Заполните заголовок, описание и адрес" },
+        { error: "Заполните заголовок, описание и район" },
         { status: 400 }
       );
     }
 
-    if (title.length < 5) {
+    if (title.length < 5 || title.length > 40) {
       return NextResponse.json(
-        { error: "Заголовок должен быть минимум 5 символов" },
+        { error: "Заголовок: от 5 до 40 символов" },
         { status: 400 }
       );
     }
 
-    if (description.length < 20) {
+    if (description.length < 60 || description.length > 1500) {
       return NextResponse.json(
-        { error: "Описание должно быть минимум 20 символов" },
+        { error: "Описание: от 60 до 1500 символов" },
         { status: 400 }
       );
     }
 
-    if (address.length < 5) {
-      return NextResponse.json(
-        { error: "Адрес должен быть минимум 5 символов" },
-        { status: 400 }
-      );
+    const districtLengthError = districtError(district);
+    if (districtLengthError) {
+      return NextResponse.json({ error: districtLengthError }, { status: 400 });
     }
 
     if (!deadline || ![3, 7, 30].includes(deadline)) {
@@ -90,43 +97,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // После получения title, description, address
-    if (title.length > 40) {
-      return NextResponse.json(
-        { error: "Заголовок не должен превышать 40 символов" },
-        { status: 400 }
-      );
-    }
-
-    if (description.length > 1500) {
-      return NextResponse.json(
-        { error: "Описание не должно превышать 1500 символов" },
-        { status: 400 }
-      );
-    }
-
-    if (address.length > 30) {
-      return NextResponse.json(
-        { error: "Адрес не должен превышать 30 символов" },
-        { status: 400 }
-      );
-    }
-
-    // Проверка на слишком простой адрес (только цифры, дефисы)
-    if (/^[0-9\s\-_]+$/.test(address)) {
-      return NextResponse.json(
-        { error: "Укажите реальный адрес, а не только цифры" },
-        { status: 400 }
-      );
-    }
-
-    // Получаем город пользователя
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { cityId: true },
-    });
-
-    if (!user || !user.cityId) {
+    if (!user.cityId) {
       return NextResponse.json(
         { error: "У вас не выбран город. Обновите профиль." },
         { status: 400 }
@@ -143,16 +114,22 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: descriptionValidation.error }, { status: 400 });
     }
 
-    // Создаём заявку — используем authorId напрямую
+    const districtValidation = isValidText(district, "Район");
+    if (!districtValidation.valid) {
+      return NextResponse.json({ error: districtValidation.error }, { status: 400 });
+    }
+
+    const now = new Date();
     const request = await prisma.request.create({
       data: {
         title,
         description,
-        address,
+        address: district,
         budget: budget ? parseInt(budget) : null,
         deadline,
+        expiresAt: computeExpiresAt(now, deadline),
         cityId: user.cityId,
-        authorId: userId,
+        authorId: user.id,
       },
       include: {
         author: {
@@ -165,52 +142,42 @@ export async function POST(req: NextRequest) {
       },
     });
 
-    await incrementDailyLimit(userId, "request");
+    await incrementDailyLimit(user.id, "request");
 
-    return NextResponse.json({ request }, { status: 201 });
+    return NextResponse.json({ request: toPublicRequest(request) }, { status: 201 });
   } catch (error) {
-    console.error("[CREATE_REQUEST_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[CREATE_REQUEST_ERROR]");
   }
 }
 
-// GET — список заявок (активные, свежие сверху)
 export async function GET(req: NextRequest) {
   try {
+    await expireOverdueRequests();
+    await getOptionalUser(req);
+
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
-    const limit = parseInt(searchParams.get("limit") || "10");
+    const limit = Math.min(parseInt(searchParams.get("limit") || "10"), 50);
     const skip = (page - 1) * limit;
 
-    const requests = await prisma.request.findMany({
-      where: {
-        status: "active",
-      },
-      include: {
-        author: {
-          select: {
-            id: true,
-            name: true,
-            avatar: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      skip,
-      take: limit,
-    });
+    const where = {
+      status: "active" as const,
+      expiresAt: { gt: new Date() },
+    };
 
-    const total = await prisma.request.count({
-      where: { status: "active" },
-    });
+    const [requests, total] = await Promise.all([
+      prisma.request.findMany({
+        where,
+        select: PUBLIC_SELECT,
+        orderBy: { createdAt: "desc" },
+        skip,
+        take: limit,
+      }),
+      prisma.request.count({ where }),
+    ]);
 
     return NextResponse.json({
-      requests,
+      requests: requests.map(toPublicRequest),
       pagination: {
         page,
         limit,
@@ -219,10 +186,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[GET_REQUESTS_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[GET_REQUESTS_ERROR]");
   }
 }

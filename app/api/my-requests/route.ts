@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const user = await requireUser(req, { allowBlocked: true });
+    const userId = user.id;
 
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
@@ -47,7 +40,10 @@ export async function GET(req: NextRequest) {
     const total = await prisma.request.count({ where });
 
     return NextResponse.json({
-      requests,
+      requests: requests.map(({ address, ...rest }) => ({
+        ...rest,
+        district: address,
+      })),
       pagination: {
         page,
         limit,
@@ -56,10 +52,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[MY_REQUESTS_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[MY_REQUESTS_ERROR]");
   }
 }

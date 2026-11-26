@@ -92,7 +92,7 @@ export default function FavoritesPage() {
                       : request.description}
                   </p>
                   <div className={styles.cardMeta}>
-                    <span>📍 {request.address}</span>
+                    <span>📍 {[request.city?.name, request.district].filter(Boolean).join(", ") || "Город не указан"}</span>
                     <span>👤 {request.author.name}</span>
                     <span>📅 {formatDate(request.createdAt)}</span>
                   </div>

@@ -1,37 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    const userBlock = await prisma.user.findUnique({
-        where: { id: userId },
-        select: { isBlocked: true, role: true },
-      });
-      
-      if (userBlock?.isBlocked) {
-        return NextResponse.json(
-          { error: 'Ваш аккаунт заблокирован' },
-          { status: 403 }
-        );
-      }
+    const user = await requireUser(req);
 
     const favorites = await prisma.favorite.findMany({
-      where: { userId },
-      include: {
+      where: { userId: user.id },
+      select: {
+        id: true,
+        requestId: true,
+        createdAt: true,
         request: {
-          include: {
+          select: {
+            id: true,
+            title: true,
+            description: true,
+            address: true,
+            budget: true,
+            deadline: true,
+            status: true,
+            createdAt: true,
+            city: { select: { name: true } },
             author: {
               select: {
                 id: true,
@@ -43,14 +35,16 @@ export async function GET(req: NextRequest) {
         },
       },
       orderBy: { createdAt: "desc" },
+      take: 100,
     });
 
-    return NextResponse.json({ favorites });
+    return NextResponse.json({
+      favorites: favorites.map((fav) => {
+        const { address, ...request } = fav.request;
+        return { ...fav, request: { ...request, district: address } };
+      }),
+    });
   } catch (error) {
-    console.error("[GET_FAVORITES_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[GET_FAVORITES_ERROR]");
   }
 }

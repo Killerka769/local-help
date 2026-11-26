@@ -30,7 +30,7 @@ interface ActiveRequest {
   id: string;
   title: string;
   description: string;
-  address: string;
+  district?: string;
   budget: number | null;
   deadline: number;
   status: string;
@@ -253,7 +253,7 @@ export default function UserProfilePage() {
             {!isOwnProfile && (
               <div className={styles.profileActions}>
                 <ComplaintButton
-                  targetType="request"
+                  targetType="user"
                   targetId={user.id}
                   authorId={user.id}
                 />
@@ -438,7 +438,7 @@ export default function UserProfilePage() {
                   </div>
                 ) : (
                   <div className={styles.requestsList}>
-                    {activeRequests.map((request: ActiveRequest) => (
+                    {activeRequests.map((request) => (
                       <div
                         key={request.id}
                         className={styles.requestCard}
@@ -456,7 +456,7 @@ export default function UserProfilePage() {
                             : request.description}
                         </p>
                         <div className={styles.requestMeta}>
-                          <span>📍 {request.address}</span>
+                          <span>📍 {[request.city?.name, request.district].filter(Boolean).join(", ") || "Город не указан"}</span>
                           <span>⏱️ {getDeadlineText(request.deadline)}</span>
                           <span>🏙️ {request.city?.name || "Город не указан"}</span>
                           <span>💬 {request._count.offers} откликов</span>

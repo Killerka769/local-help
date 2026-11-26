@@ -221,7 +221,9 @@ export default function MyOffersPage() {
                     </p>
 
                     <div className={styles.offerMeta}>
-                      <span className={styles.metaItem}>📍 {offer.request.address}</span>
+                      <span className={styles.metaItem}>
+                        📍 {[offer.request.city?.name, offer.request.district].filter(Boolean).join(", ") || "Город"}
+                      </span>
                       <span className={styles.metaItem}>📅 {formatDate(offer.createdAt)}</span>
                     </div>
 

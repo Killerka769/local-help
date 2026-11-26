@@ -11,7 +11,7 @@ interface Request {
   id: string;
   title: string;
   description: string;
-  address: string;
+  district?: string;
   budget: number | null;
   deadline: number;
   status: string;
@@ -175,9 +175,9 @@ export default function MyRequestsPage() {
                     {truncateText(request.description, 120)}
                   </p>
                   <div className={styles.cardFooter}>
-                    <div className={styles.cardInfo} title={request.address}>
+                    <div className={styles.cardInfo} title={request.district}>
                       <span className={styles.infoIcon}>📍</span>
-                      <span className={styles.infoText}>{truncateText(request.address, 35)}</span>
+                      <span className={styles.infoText}>{truncateText(request.district || "Район не указан", 35)}</span>
                     </div>
                     <div className={styles.cardInfo}>
                       <span className={styles.infoIcon}>⏱️</span>

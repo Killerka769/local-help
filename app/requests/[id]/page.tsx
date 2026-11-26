@@ -33,11 +33,12 @@ interface RequestData {
   id: string;
   title: string;
   description: string;
-  address: string;
+  district?: string;
   budget: number | null;
   deadline: number;
   status: string;
   createdAt: string;
+  city?: { id: string; name: string } | null;
   author: {
     id: string;
     name: string;
@@ -48,6 +49,7 @@ interface RequestData {
   offers: Offer[];
   canOffer: boolean;
   isAuthor: boolean;
+  canViewPhone?: boolean;
   hasUserReviewed?: boolean;
 }
 
@@ -64,7 +66,7 @@ export default function RequestPage({ params }: PageProps) {
   const [editForm, setEditForm] = useState({
     title: "",
     description: "",
-    address: "",
+    district: "",
     budget: "",
     deadline: "7",
   });
@@ -187,7 +189,7 @@ export default function RequestPage({ params }: PageProps) {
       setEditForm({
         title: request.title,
         description: request.description,
-        address: request.address,
+        district: request.district ?? "",
         budget: request.budget?.toString() || "",
         deadline: request.deadline.toString(),
       });
@@ -236,7 +238,7 @@ export default function RequestPage({ params }: PageProps) {
     updateMutation.mutate({
       title: editForm.title,
       description: editForm.description,
-      address: editForm.address,
+      district: editForm.district,
       budget: editForm.budget || undefined,
       deadline: parseInt(editForm.deadline),
     });
@@ -354,7 +356,9 @@ export default function RequestPage({ params }: PageProps) {
           <div className={styles.info}>
             <div className={styles.infoItem}>
               <span className={styles.infoIcon}>📍</span>
-              <span>{request.address}</span>
+              <span>
+                {[request.city?.name, request.district].filter(Boolean).join(", ") || "Город не указан"}
+              </span>
             </div>
             <div className={styles.infoItem}>
               <span className={styles.infoIcon}>⏱️</span>
@@ -460,12 +464,13 @@ export default function RequestPage({ params }: PageProps) {
                 />
               </div>
               <div className={styles.field}>
-                <label>Адрес</label>
+                <label>Район или ориентир</label>
                 <input
                   type="text"
-                  value={editForm.address}
-                  onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  value={editForm.district}
+                  onChange={(e) => setEditForm({ ...editForm, district: e.target.value })}
                   required
+                  maxLength={80}
                   className={styles.input}
                 />
               </div>

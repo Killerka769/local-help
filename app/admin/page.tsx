@@ -473,16 +473,14 @@ export default function AdminPage() {
                             <td>{u.name}</td>
                             <td className={styles.copyable} onClick={() => copyToClipboard(u.phone, "Телефон")}>{u.phone}</td>
                             <td>
-                              {isSuperAdmin ? (
-                                <select 
-                                  value={u.role} 
-                                  onChange={e => handleRoleChange(u.id, e.target.value)} 
-                                  className={styles.roleSelect} 
-                                  disabled={u.role === "SUPER_ADMIN" && user.id !== u.id}
+                              {isSuperAdmin && u.role !== "SUPER_ADMIN" ? (
+                                <select
+                                  value={u.role}
+                                  onChange={e => handleRoleChange(u.id, e.target.value)}
+                                  className={styles.roleSelect}
                                 >
                                   <option value="USER">USER</option>
                                   <option value="ADMIN">ADMIN</option>
-                                  <option value="SUPER_ADMIN">SUPER_ADMIN</option>
                                 </select>
                               ) : (
                                 <span className={styles.roleBadge}>{u.role}</span>
@@ -591,7 +589,7 @@ export default function AdminPage() {
                                   <>
                                     <p><strong>Заголовок:</strong> {target.title}</p>
                                     <p><strong>Описание:</strong> {target.description?.slice(0, 200)}...</p>
-                                    <p><strong>Адрес:</strong> {target.address}</p>
+                                    <p><strong>Район:</strong> {target.district || target.address}</p>
                                     <p><strong>Автор:</strong> {target.author?.name} ({target.author?.phone})</p>
                                     <button onClick={() => router.push(`/requests/${target.id}`)} className={styles.viewTargetBtn}>Открыть заявку</button>
                                   </>

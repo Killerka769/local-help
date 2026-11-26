@@ -1,19 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
 
 export async function GET(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const authUser = await requireUser(req, { allowBlocked: true });
+    const userId = authUser.id;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
@@ -119,7 +112,7 @@ export async function GET(req: NextRequest) {
         id: r.id,
         title: r.title,
         description: r.description,
-        address: r.address,
+        district: r.address,
         budget: r.budget,
         deadline: r.deadline,
         status: r.status,
@@ -181,10 +174,6 @@ export async function GET(req: NextRequest) {
       },
     });
   } catch (error) {
-    console.error("[EXPORT_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[EXPORT_ERROR]");
   }
 }

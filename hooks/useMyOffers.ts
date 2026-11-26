@@ -8,8 +8,9 @@ interface Offer {
   request: {
     id: string;
     title: string;
-    address: string;
+    district?: string;
     budget: number | null;
+    city?: { name: string };
     author: {
       phone: string | null;
     };

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SUPPORT_EMAIL } from "@/lib/support";
 import styles from "./page.module.scss";
 
 export default function TermsPage() {
@@ -9,7 +10,7 @@ export default function TermsPage() {
       <main className={styles.main}>
         <div className={styles.container}>
           <h1 className={styles.title}>Пользовательское соглашение</h1>
-          <p className={styles.date}>Последнее обновление: 24 апреля 2026 г.</p>
+          <p className={styles.date}>Последнее обновление: 26 ноября 2026 г.</p>
 
           <div className={styles.content}>
             <section>
@@ -19,7 +20,8 @@ export default function TermsPage() {
                 администрацией платформы Local Help (далее — «Платформа», «Мы») и пользователями сервиса.
               </p>
               <p>
-                1.2. Используя Платформу, вы подтверждаете, что ознакомлены с условиями Соглашения и принимаете их.
+                1.2. Используя Платформу, вы подтверждаете, что вам есть 18 лет, вы ознакомились
+                с условиями Соглашения и Политикой конфиденциальности и принимаете их.
               </p>
             </section>
 
@@ -73,7 +75,8 @@ export default function TermsPage() {
             <section>
               <h2>5. Конфиденциальность</h2>
               <p>
-                5.1. Телефоны и адреса пользователей становятся доступны другой стороне только после одобрения отклика.
+                5.1. Телефон становится доступен другой стороне только после одобрения отклика.
+                В ленте и карточке заявки отображаются город и район (ориентир). Точный адрес (дом, квартира) на платформе не собирается и обсуждается сторонами по телефону.
               </p>
               <p>
                 5.2. Администрация не передаёт данные пользователей третьим лицам, кроме случаев, предусмотренных законом.
@@ -90,7 +93,7 @@ export default function TermsPage() {
 
             <section>
               <h2>7. Контакты</h2>
-              <p>По всем вопросам обращайтесь: gaydar.666@mail.ru</p>
+              <p>По всем вопросам обращайтесь: {SUPPORT_EMAIL}</p>
             </section>
           </div>
 

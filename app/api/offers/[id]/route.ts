@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { getOptionalUser, requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
+import { isContactStatus } from "@/lib/contacts";
 
 export async function GET(
   req: NextRequest,
@@ -25,6 +25,7 @@ export async function GET(
         },
         request: {
           include: {
+            city: { select: { id: true, name: true } },
             author: {
               select: {
                 id: true,
@@ -42,39 +43,50 @@ export async function GET(
       return NextResponse.json({ error: "Отклик не найден" }, { status: 404 });
     }
 
-    // Определяем права доступа
-    let currentUserId: string | null = null;
-    const token = req.cookies.get("token")?.value;
-
-    if (token) {
-      try {
-        const { payload } = await jwtVerify(token, secret);
-        currentUserId = payload.userId as string;
-      } catch {
-        // игнорируем
-      }
-    }
-
+    const currentUser = await getOptionalUser(req);
+    const currentUserId = currentUser?.id ?? null;
     const isAuthor = currentUserId === offer.request.authorId;
     const isOfferUser = currentUserId === offer.userId;
-    const isApproved = offer.status === "approved";
-
-    // Адрес и телефон показываются только после одобрения
-    const canViewAddress = isApproved && (isAuthor || isOfferUser);
-    const canViewPhone = isApproved && (isAuthor || isOfferUser);
+    const canViewContacts =
+      isContactStatus(offer.status) && (isAuthor || isOfferUser);
 
     return NextResponse.json({
-      ...offer,
+      id: offer.id,
+      comment: offer.comment,
+      status: offer.status,
+      requestId: offer.requestId,
+      userId: offer.userId,
+      createdAt: offer.createdAt,
+      updatedAt: offer.updatedAt,
+      user: {
+        id: offer.user.id,
+        name: offer.user.name,
+        avatar: offer.user.avatar,
+        description: offer.user.description,
+        phone: canViewContacts ? offer.user.phone : null,
+      },
+      request: {
+        id: offer.request.id,
+        title: offer.request.title,
+        description: offer.request.description,
+        budget: offer.request.budget,
+        deadline: offer.request.deadline,
+        status: offer.request.status,
+        createdAt: offer.request.createdAt,
+        city: offer.request.city,
+        district: offer.request.address,
+        author: {
+          id: offer.request.author.id,
+          name: offer.request.author.name,
+          avatar: offer.request.author.avatar,
+          phone: canViewContacts ? offer.request.author.phone : null,
+        },
+      },
       canApprove: isAuthor && offer.status === "pending" && offer.request.status === "active",
-      canViewAddress,
-      canViewPhone,
+      canViewPhone: canViewContacts,
     });
   } catch (error) {
-    console.error("[GET_OFFER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[GET_OFFER_ERROR]");
   }
 }
 
@@ -84,14 +96,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const user = await requireUser(req);
 
     const offer = await prisma.offer.findUnique({
       where: { id },
@@ -99,32 +104,21 @@ export async function DELETE(
     });
 
     if (!offer) {
-      return NextResponse.json({ error: "Отклик не найден" }, { status: 404 });
+      throw new HttpError(404, "Отклик не найден");
     }
 
-    // Только автор может удалить
-    if (offer.userId !== userId) {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
+    if (offer.userId !== user.id) {
+      throw new HttpError(403, "Нет прав");
     }
 
-    // Нельзя удалить одобренный отклик
     if (offer.status === "approved") {
-      return NextResponse.json(
-        { error: "Нельзя удалить одобренный отклик" },
-        { status: 400 }
-      );
+      throw new HttpError(400, "Нельзя удалить одобренный отклик");
     }
 
-    await prisma.offer.delete({
-      where: { id },
-    });
+    await prisma.offer.delete({ where: { id } });
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[DELETE_OFFER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[DELETE_OFFER_ERROR]");
   }
 }
