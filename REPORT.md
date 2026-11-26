@@ -94,7 +94,7 @@
 | 6 | schema+migration consent, register, privacy | Timestamps согласия, 18+, self-delete в политике | `1c899bc` |
 | 7 | `app/api/admin/users/[id]/reset-link/route.ts`, README | Одноразовая ссылка 1 ч, adminLog | `9752d23` |
 | 8 | `prisma/seed.ts`, `.env.example`, `README.md`, оставшиеся API | Upsert городов, путь на чистую БД, requireUser на хвостах | `538ce04` |
-| 9 | `REPORT.md`, `CHANGELOG-AUDIT.md`, `utils/badWords.ts` (жопа), `app/blocked/page.tsx`, `app/profile/[id]/layout.tsx`, копирайт главной/README | Отчёт, хвосты | T9HASH |
+| 9 | `REPORT.md`, `CHANGELOG-AUDIT.md`, `utils/badWords.ts` (жопа), `app/blocked/page.tsx`, `app/profile/[id]/layout.tsx`, копирайт главной/README | Отчёт, хвосты | `da11b60` |
 
 ---
 
