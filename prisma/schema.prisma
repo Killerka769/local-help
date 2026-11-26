@@ -187,6 +187,7 @@ model Request {
   address     String
   budget      Int?
   deadline    Int
+  expiresAt   DateTime
   status      String   @default("active")
   authorId    String
   cityId      String   // город, где нужна помощь (по умолчанию = город автора)
@@ -203,7 +204,9 @@ model Request {
   @@index([status])
   @@index([authorId])
   @@index([cityId])
-  @@index([cityId, status]) // для быстрой фильтрации по городу+статусу
+  @@index([cityId, status])
+  @@index([cityId, status, createdAt])
+  @@index([status, expiresAt])
 }
 
 // ========================
@@ -225,6 +228,7 @@ model Offer {
   @@unique([requestId, userId]) // один пользователь — один отклик на заявку
   @@index([status])
   @@index([requestId])
+  @@index([userId])
 }
 
 // ========================
@@ -256,7 +260,7 @@ model Review {
 
   fromUser User @relation(fields: [fromUserId], references: [id], name: "fromUserReviews")
   toUser   User @relation(fields: [toUserId], references: [id], name: "toUserReviews")
-  request  Request @relation(fields: [requestId], references: [id])
+  request  Request @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@unique([requestId, fromUserId])
   @@index([toUserId])

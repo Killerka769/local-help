@@ -1,5 +1,11 @@
 {
-    "buildCommand": "prisma generate && next build",
-    "installCommand": "npm install",
-    "framework": "nextjs"
-  }
+  "buildCommand": "prisma generate && next build",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "crons": [
+    {
+      "path": "/api/cron/expire-requests",
+      "schedule": "0 3 * * *"
+    }
+  ]
+}

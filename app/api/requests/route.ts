@@ -5,7 +5,7 @@ import { getRateLimitKey, rateLimit } from "@/lib/rateLimit";
 import { checkDailyLimit, incrementDailyLimit } from "@/lib/dailyLimits";
 import { requireUser, getOptionalUser } from "@/lib/auth";
 import { handleRouteError } from "@/lib/http";
-import { computeExpiresAt, expireOverdueRequests } from "@/lib/requestExpiry";
+import { computeExpiresAt } from "@/lib/requestExpiry";
 import { districtError, readDistrict } from "@/lib/district";
 
 const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 10 });
@@ -152,7 +152,6 @@ export async function POST(req: NextRequest) {
 
 export async function GET(req: NextRequest) {
   try {
-    await expireOverdueRequests();
     await getOptionalUser(req);
 
     const { searchParams } = new URL(req.url);

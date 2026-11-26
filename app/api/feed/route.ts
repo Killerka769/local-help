@@ -2,12 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import { getOptionalUser } from "@/lib/auth";
-import { expireOverdueRequests } from "@/lib/requestExpiry";
-
 export async function GET(req: NextRequest) {
   try {
-    await expireOverdueRequests();
-
     const { searchParams } = new URL(req.url);
     const page = parseInt(searchParams.get("page") || "1");
     const limit = Math.min(parseInt(searchParams.get("limit") || "12"), 50);

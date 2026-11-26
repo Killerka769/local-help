@@ -1,13 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { expireOverdueRequests } from "@/lib/requestExpiry";
 
 export async function GET(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    await expireOverdueRequests();
     const { id } = await params;
 
     const user = await prisma.user.findUnique({

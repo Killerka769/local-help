@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { createAdminLog } from "@/lib/adminLog";
+import { handleRouteError } from "@/lib/http";
 
 export async function POST(
   req: NextRequest,
@@ -11,6 +12,13 @@ export async function POST(
     const admin = await requireAdmin(req);
     const { id } = await params;
     const { reason, days } = await req.json();
+
+    if (admin.id === id) {
+      return NextResponse.json(
+        { error: "Нельзя заблокировать себя" },
+        { status: 400 }
+      );
+    }
 
     const targetUser = await prisma.user.findUnique({
       where: { id },
@@ -45,6 +53,7 @@ export async function POST(
         blockedReason: reason || "Нарушение правил",
         blockedUntil,
         bannedAt: new Date(),
+        sessionVersion: { increment: 1 },
       },
     });
 
@@ -63,11 +72,7 @@ export async function POST(
 
     return NextResponse.json({ user: updatedUser });
   } catch (error) {
-    console.error("[BAN_USER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[BAN_USER_ERROR]");
   }
 }
 
@@ -79,13 +84,27 @@ export async function DELETE(
     const admin = await requireAdmin(req);
     const { id } = await params;
 
+    if (admin.id === id) {
+      return NextResponse.json(
+        { error: "Нельзя разблокировать себя этим методом" },
+        { status: 400 }
+      );
+    }
+
     const targetUser = await prisma.user.findUnique({
       where: { id },
-      select: { name: true },
+      select: { name: true, role: true },
     });
 
     if (!targetUser) {
       return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
+    }
+
+    if (targetUser.role === "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Нельзя менять блокировку главного администратора" },
+        { status: 403 }
+      );
     }
 
     const updatedUser = await prisma.user.update({
@@ -113,10 +132,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[UNBAN_USER_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[UNBAN_USER_ERROR]");
   }
 }

@@ -1,24 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import bcrypt from "bcrypt";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireUser } from "@/lib/auth";
+import { handleRouteError } from "@/lib/http";
+import { validatePassword } from "@/lib/password";
 
 export async function POST(req: NextRequest) {
   try {
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
+    const user = await requireUser(req);
     const { currentPassword, newPassword, confirmPassword } = await req.json();
 
-    // Валидация
     if (!currentPassword || !newPassword || !confirmPassword) {
       return NextResponse.json(
         { error: "Заполните все поля" },
@@ -26,11 +17,9 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    if (newPassword.length < 6) {
-      return NextResponse.json(
-        { error: "Новый пароль должен быть минимум 6 символов" },
-        { status: 400 }
-      );
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
     }
 
     if (newPassword !== confirmPassword) {
@@ -47,19 +36,16 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Получаем пользователя
-    const user = await prisma.user.findUnique({
-      where: { id: userId },
+    const dbUser = await prisma.user.findUnique({
+      where: { id: user.id },
       select: { passwordHash: true },
     });
 
-    if (!user) {
+    if (!dbUser) {
       return NextResponse.json({ error: "Пользователь не найден" }, { status: 404 });
     }
 
-    // Проверяем текущий пароль
-    const isPasswordValid = await bcrypt.compare(currentPassword, user.passwordHash);
-
+    const isPasswordValid = await bcrypt.compare(currentPassword, dbUser.passwordHash);
     if (!isPasswordValid) {
       return NextResponse.json(
         { error: "Неверный текущий пароль" },
@@ -67,21 +53,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Хешируем новый пароль
     const newPasswordHash = await bcrypt.hash(newPassword, 10);
 
-    // Обновляем пароль
     await prisma.user.update({
-      where: { id: userId },
-      data: { passwordHash: newPasswordHash },
+      where: { id: user.id },
+      data: {
+        passwordHash: newPasswordHash,
+        sessionVersion: { increment: 1 },
+      },
     });
 
-    return NextResponse.json({ success: true });
+    const response = NextResponse.json({ success: true });
+    response.cookies.delete("token");
+    return response;
   } catch (error) {
-    console.error("[CHANGE_PASSWORD_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[CHANGE_PASSWORD_ERROR]");
   }
 }

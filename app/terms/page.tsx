@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SUPPORT_EMAIL } from "@/lib/support";
+import { SUPPORT_CONTACT } from "@/lib/support";
 import styles from "./page.module.scss";
 
 export default function TermsPage() {
@@ -93,7 +93,7 @@ export default function TermsPage() {
 
             <section>
               <h2>7. Контакты</h2>
-              <p>По всем вопросам обращайтесь: {SUPPORT_EMAIL}</p>
+              <p>По всем вопросам обращайтесь: {SUPPORT_CONTACT || "контакт поддержки в SUPPORT_CONTACT"}</p>
             </section>
           </div>
 

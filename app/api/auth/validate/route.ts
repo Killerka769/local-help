@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { getJwtSecretBytes } from "@/lib/jwt";
 
 export async function GET(req: NextRequest) {
   try {
@@ -12,28 +11,31 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ isValid: false }, { status: 401 });
     }
 
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     const userId = payload.userId as string;
-    const tokenSessionVersion = payload.sessionVersion as number || 0;
+    const tokenSessionVersion = (payload.sessionVersion as number) || 0;
 
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { sessionVersion: true, isBlocked: true, blockedReason: true, blockedUntil: true },
+      select: {
+        sessionVersion: true,
+        isBlocked: true,
+        blockedReason: true,
+        blockedUntil: true,
+        role: true,
+      },
     });
 
     if (!user) {
       return NextResponse.json({ isValid: false }, { status: 401 });
     }
 
-    // Проверяем sessionVersion
     if (tokenSessionVersion !== user.sessionVersion) {
       return NextResponse.json({ isValid: false }, { status: 401 });
     }
 
-    // Проверяем, не истёк ли срок блокировки
     let isBlocked = user.isBlocked;
     if (user.blockedUntil && new Date(user.blockedUntil) < new Date()) {
-      // Автоматическая разблокировка
       await prisma.user.update({
         where: { id: userId },
         data: {
@@ -47,16 +49,14 @@ export async function GET(req: NextRequest) {
       isBlocked = false;
     }
 
-    // Валидный токен — возвращаем true, даже если пользователь заблокирован
-    // Блокировка проверяется отдельно, но токен остаётся валидным
-    return NextResponse.json({ 
-      isValid: true, 
+    return NextResponse.json({
+      isValid: true,
       isBlocked,
+      role: user.role,
       blockedReason: user.blockedReason,
       blockedUntil: user.blockedUntil,
     });
-  } catch (error) {
-    console.error("[VALIDATE_TOKEN_ERROR]", error);
+  } catch {
     return NextResponse.json({ isValid: false }, { status: 401 });
   }
 }

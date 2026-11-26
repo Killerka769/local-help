@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { SUPPORT_EMAIL } from "@/lib/support";
+import { SUPPORT_CONTACT } from "@/lib/support";
 import styles from "./page.module.scss";
 
 export default function PrivacyPage() {
@@ -22,7 +22,7 @@ export default function PrivacyPage() {
               </p>
               <p>
                 Оператор — физическое лицо, администрирующее Платформу. Контакт для запросов по
-                персональным данным: <strong>{SUPPORT_EMAIL}</strong>. Юридическое лицо / ИП
+                персональным данным: <strong>{SUPPORT_CONTACT}</strong>. Юридическое лицо / ИП
                 будет указано здесь после регистрации оператора.
               </p>
               <p>
@@ -107,7 +107,7 @@ export default function PrivacyPage() {
                 Удаление выполняется сразу: профиль, заявки, отклики, отзывы, токены и лимиты.
               </p>
               <p>
-                Можно также написать на <strong>{SUPPORT_EMAIL}</strong>. Копию своих данных можно
+                Можно также написать на <strong>{SUPPORT_CONTACT}</strong>. Копию своих данных можно
                 скачать в настройках (экспорт).
               </p>
             </section>
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
             <section>
               <h2>8. Права субъекта</h2>
               <p>Вы вправе запросить копию данных, исправление, удаление и отозвать согласие
-                (удалив аккаунт). Запросы: <strong>{SUPPORT_EMAIL}</strong>.</p>
+                (удалив аккаунт). Запросы: <strong>{SUPPORT_CONTACT}</strong>.</p>
             </section>
 
             <section>
@@ -128,7 +128,7 @@ export default function PrivacyPage() {
             <section>
               <h2>10. Контакты</h2>
               <p>
-                📧 <strong>{SUPPORT_EMAIL}</strong>
+                📧 <strong>{SUPPORT_CONTACT}</strong>
               </p>
             </section>
           </div>

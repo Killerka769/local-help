@@ -8,6 +8,7 @@ import { useMutation } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { usePhoneMask } from "@/hooks/usePhoneMask";
 import { useAuth } from "@/hooks/useAuth";
+import { SUPPORT_CONTACT, supportHref } from "@/lib/support";
 import styles from "./Login.module.scss";
 import PasswordInput from "../components/PasswordInput/PasswordInput";
 
@@ -130,9 +131,17 @@ export default function LoginPage() {
             </form>
 
             <div className={styles.forgotPassword}>
-              <Link href="/forgot-password" className={styles.forgotLink}>
-                Забыли пароль?
-              </Link>
+              <p className={styles.forgotLink}>
+                Забыли пароль? Напишите в поддержку
+                {SUPPORT_CONTACT ? (
+                  <>
+                    :{" "}
+                    <a href={supportHref()}>{SUPPORT_CONTACT}</a>
+                  </>
+                ) : (
+                  "."
+                )}
+              </p>
             </div>
 
             <p className={styles.footer}>

@@ -1,13 +1,9 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { jwtVerify } from 'jose';
+import { getJwtSecretBytes } from '@/lib/jwt';
 
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
-
-// ========================
-// ПУБЛИЧНЫЕ МАРШРУТЫ (доступны всем, даже без токена)
-// ========================
-const PUBLIC_ROUTES = [
+const PUBLIC_PAGES = new Set([
   '/',
   '/login',
   '/register',
@@ -18,230 +14,151 @@ const PUBLIC_ROUTES = [
   '/privacy',
   '/faq',
   '/forgot-password',
-  '/reset-password',  
+  '/reset-password',
   '/verify-email',
-  '/api/auth/login',
-  '/api/auth/register',
-  '/api/auth/forgot-password',   
-  '/api/auth/reset-password',    
-  '/api/user/verify-email', 
-  '/api/cities',
-  '/api/feed',
-  '/api/user/check-blocked',
-  '/api/auth/validate',
-  '/api/users',
-  '/api/reviews',
-];
+  '/advertising',
+]);
 
-// ========================
-// АДМИН-МАРШРУТЫ (только для ADMIN и SUPER_ADMIN)
-// ========================
-const ADMIN_ROUTES = [
-  '/admin',
-  '/api/admin',
-];
-
-// ========================
-// ЗАЩИЩЁННЫЕ МАРШРУТЫ (только для авторизованных, НЕ забаненных)
-// ========================
-const PROTECTED_ROUTES = [
-  '/profile',           // свой профиль (без ID)
-  '/requests',          // мои заявки
-  '/requests/new',      // создание заявки
-  '/profile/offers',    // мои отклики
-  '/profile/favorites', // избранное
-  '/profile/reviews',   // мои отзывы
-  '/settings',          // страница настроек
-  '/api/requests',      // API создания заявок
-  '/api/offers',        // API откликов
-  '/api/favorites',     // API избранного
-  '/api/my-requests',   // API моих заявок
-  '/api/my-offers',     // API моих откликов
-  '/api/my-reviews',    // API моих отзывов
-  '/api/profile',       // API профиля (PUT)
-];
-
-// ========================
-// ПУБЛИЧНЫЕ API ДЛЯ ЧТЕНИЯ (доступны всем)
-// ========================
-const PUBLIC_API_ROUTES = [
-  '/api/feed',
-  '/api/users',
-  '/api/reviews',
-  '/api/requests',
-  '/api/offers',
-  '/api/cities',
-];
-
-// ========================
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
-// ========================
-function isPublicRoute(path: string): boolean {
-  // Точно публичные страницы
-  if (PUBLIC_ROUTES.includes(path)) return true;
-  // Чужие профили /profile/:id
+function isPublicPage(path: string): boolean {
+  if (PUBLIC_PAGES.has(path)) return true;
   if (path.startsWith('/profile/') && path !== '/profile') return true;
-  // Публичные API для чтения
-  if (PUBLIC_API_ROUTES.some(route => path.startsWith(route))) return true;
-  // Просмотр конкретной заявки /requests/:id
   if (path.startsWith('/requests/') && path !== '/requests' && !path.includes('/new')) return true;
-  // Просмотр конкретного отклика /offers/:id
   if (path.startsWith('/offers/') && path !== '/offers') return true;
+  return false;
+}
+
+function isPublicApi(path: string, method: string): boolean {
+  if (method !== 'GET') {
+    return (
+      path === '/api/auth/login' ||
+      path === '/api/auth/register' ||
+      path === '/api/auth/forgot-password' ||
+      path === '/api/auth/reset-password'
+    );
+  }
+
+  if (path === '/api/feed') return true;
+  if (path === '/api/cities') return true;
+  if (path === '/api/auth/validate') return true;
+  if (path === '/api/user/check-blocked') return true;
+  if (path === '/api/user/verify-email') return true;
+  if (path === '/api/cron/expire-requests') return true;
+  if (path.startsWith('/api/users/')) return true;
+  if (path.startsWith('/api/reviews/user/')) return true;
+  if (/^\/api\/requests\/[^/]+$/.test(path)) return true;
+  if (/^\/api\/offers\/[^/]+$/.test(path)) return true;
+  if (path === '/api/requests') return true;
   return false;
 }
 
 function isAdminRoute(path: string): boolean {
-  return ADMIN_ROUTES.some(route => path.startsWith(route));
-}
-
-function isProtectedRoute(path: string): boolean {
-  // Защищённые страницы
-  if (PROTECTED_ROUTES.includes(path)) return true;
-  if (path.startsWith('/profile/') && path !== '/profile') return false; // чужие профили не защищены
-  if (path.startsWith('/api/profile')) return true;
-  return false;
+  return path === '/admin' || path.startsWith('/admin/') || path.startsWith('/api/admin');
 }
 
 function isBlockedAllowedRoute(path: string): boolean {
-  // Страница блокировки
-  if (path === '/blocked') return true;
-  // Главная и лента
-  if (path === '/') return true;
-  if (path === '/feed') return true;
-  // Чужие профили
+  if (path === '/blocked' || path === '/' || path === '/feed') return true;
+  if (path === '/terms' || path === '/how-it-works' || path === '/privacy' || path === '/faq') return true;
   if (path.startsWith('/profile/') && path !== '/profile') return true;
-  // Просмотр заявок (только чтение)
   if (path.startsWith('/requests/') && path !== '/requests' && !path.includes('/new')) return true;
-  // Просмотр откликов
   if (path.startsWith('/offers/') && path !== '/offers') return true;
-  // Публичные страницы
-  if (path === '/terms') return true;
-  if (path === '/how-it-works') return true;
-  // Публичные API для чтения
-  if (PUBLIC_API_ROUTES.some(route => path.startsWith(route))) return true;
-  // API проверки блокировки
+  if (path.startsWith('/api/feed')) return true;
+  if (path.startsWith('/api/cities')) return true;
+  if (path.startsWith('/api/users/')) return true;
+  if (path.startsWith('/api/reviews/user/')) return true;
+  if (/^\/api\/requests\/[^/]+$/.test(path)) return true;
+  if (/^\/api\/offers\/[^/]+$/.test(path)) return true;
   if (path.startsWith('/api/user/check-blocked')) return true;
   if (path.startsWith('/api/auth/validate')) return true;
+  if (path.startsWith('/api/auth/logout')) return true;
   return false;
 }
 
-// ========================
-// MIDDLEWARE
-// ========================
+function clearAuth(url: string, asJson: boolean) {
+  const response = asJson
+    ? NextResponse.json({ error: 'Не авторизован' }, { status: 401 })
+    : NextResponse.redirect(new URL('/login', url));
+  response.cookies.delete('token');
+  return response;
+}
+
 export async function middleware(request: NextRequest) {
   const path = request.nextUrl.pathname;
+  const method = request.method;
   const token = request.cookies.get('token')?.value;
+  const isApi = path.startsWith('/api/');
 
   if (token && (path === '/login' || path === '/register')) {
     return NextResponse.redirect(new URL('/', request.url));
   }
-  
-  // 1. Публичные маршруты — пропускаем без проверок
-  if (isPublicRoute(path)) {
+
+  if (isPublicPage(path) || isPublicApi(path, method)) {
     return NextResponse.next();
   }
 
-  // 2. Нет токена — редирект на логин
   if (!token) {
-    const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('from', path);
-    
-    if (path.startsWith('/api/')) {
+    if (isApi) {
       return NextResponse.json({ error: 'Не авторизован' }, { status: 401 });
     }
-    
+    const loginUrl = new URL('/login', request.url);
+    loginUrl.searchParams.set('from', path);
     return NextResponse.redirect(loginUrl);
   }
 
   try {
-    // 3. Верифицируем JWT
-    const { payload } = await jwtVerify(token, secret);
+    const { payload } = await jwtVerify(token, getJwtSecretBytes());
     const userId = payload.userId as string;
-    const userRole = payload.role as string || 'USER';
-    const tokenSessionVersion = payload.sessionVersion as number || 0;
-
     if (!userId) {
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('token');
-      return response;
+      return clearAuth(request.url, isApi);
     }
 
-    // 4. Проверяем админ-доступ
-    if (isAdminRoute(path)) {
-      if (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
-        if (path.startsWith('/api/')) {
-          return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 });
-        }
-        return NextResponse.redirect(new URL('/', request.url));
-      }
-      // Админские маршруты пропускаем дальше без проверки блокировки
-      return NextResponse.next();
-    }
-
-    // 5. Для API запросов — пропускаем (блокировку проверяет сам API)
-    if (path.startsWith('/api/')) {
-      return NextResponse.next();
-    }
-
-    // 6. Проверяем валидность токена и блокировку через API
     const checkUrl = new URL('/api/auth/validate', request.url);
     const checkResponse = await fetch(checkUrl.toString(), {
       headers: { Cookie: request.headers.get('cookie') || '' },
     });
-    
+
     if (!checkResponse.ok) {
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('token');
-      return response;
-    }
-    
-    const { isValid, isBlocked } = await checkResponse.json();
-    
-    if (!isValid) {
-      const response = NextResponse.redirect(new URL('/login', request.url));
-      response.cookies.delete('token');
-      return response;
-    }
-    
-    // 7. Если пользователь забанен
-    if (isBlocked) {
-      // Проверяем, может ли он зайти на этот маршрут
-      if (!isBlockedAllowedRoute(path)) {
-        return NextResponse.redirect(new URL('/blocked', request.url));
-      }
-      // Забаненный может только читать, не может создавать/редактировать
-      if (path === '/requests/new' || path.includes('/edit') || path.includes('/create')) {
-        return NextResponse.redirect(new URL('/blocked', request.url));
-      }
-      return NextResponse.next();
+      return clearAuth(request.url, isApi);
     }
 
-    // 8. Проверяем защищённые маршруты (требуют авторизации, но не блокировки)
-    if (isProtectedRoute(path)) {
-      return NextResponse.next();
+    const { isValid, isBlocked, role } = await checkResponse.json();
+
+    if (!isValid) {
+      return clearAuth(request.url, isApi);
     }
 
     if (isAdminRoute(path)) {
-      if (userRole !== 'ADMIN' && userRole !== 'SUPER_ADMIN') {
-        if (path.startsWith('/api/')) {
+      if (role !== 'ADMIN' && role !== 'SUPER_ADMIN') {
+        if (isApi) {
           return NextResponse.json({ error: 'Доступ запрещён' }, { status: 403 });
         }
         return NextResponse.redirect(new URL('/', request.url));
       }
+      if (isBlocked) {
+        if (isApi) {
+          return NextResponse.json({ error: 'Ваш аккаунт заблокирован' }, { status: 403 });
+        }
+        return NextResponse.redirect(new URL('/blocked', request.url));
+      }
+      return NextResponse.next();
     }
 
-    // 9. Всё остальное — пропускаем
+    if (isBlocked) {
+      if (!isBlockedAllowedRoute(path) || path === '/requests/new' || path.includes('/edit')) {
+        if (isApi) {
+          return NextResponse.json({ error: 'Ваш аккаунт заблокирован' }, { status: 403 });
+        }
+        return NextResponse.redirect(new URL('/blocked', request.url));
+      }
+    }
+
     return NextResponse.next();
-  } catch (error) {
-    console.error('[MIDDLEWARE_JWT_ERROR]', error);
-    const response = NextResponse.redirect(new URL('/login', request.url));
-    response.cookies.delete('token');
-    return response;
+  } catch {
+    return clearAuth(request.url, isApi);
   }
 }
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|public|images|uploads).*)',
+    '/((?!_next/static|_next/image|favicon.ico|public|images).*)',
   ],
 };

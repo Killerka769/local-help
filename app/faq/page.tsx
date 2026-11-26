@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { SUPPORT_EMAIL, SUPPORT_TELEGRAM, SUPPORT_TELEGRAM_URL } from "@/lib/support";
+import { SUPPORT_CONTACT, supportHref } from "@/lib/support";
 import styles from "./page.module.scss";
 
 interface FaqItem {
@@ -68,7 +68,9 @@ const faqItems: FaqItem[] = [
   },
   {
     question: "Как связаться с поддержкой?",
-    answer: `Telegram @${SUPPORT_TELEGRAM} или почта ${SUPPORT_EMAIL}. Обычно отвечаем в течение суток.`,
+    answer: SUPPORT_CONTACT
+      ? `Напишите в поддержку: ${SUPPORT_CONTACT}. Обычно отвечаем в течение суток.`
+      : "Контакт поддержки задаётся в переменной SUPPORT_CONTACT.",
   },
 ];
 
@@ -113,20 +115,16 @@ export default function FaqPage() {
           <div className={styles.contact}>
             <p>Не нашли ответ на свой вопрос?</p>
             <div className={styles.contactButtons}>
-              <a
-                href={SUPPORT_TELEGRAM_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={styles.contactBtnTelegram}
-              >
-                Написать в Telegram
-              </a>
-              <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className={styles.contactBtnEmail}
-              >
-                Написать на почту
-              </a>
+              {SUPPORT_CONTACT ? (
+                <a
+                  href={supportHref()}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={styles.contactBtnEmail}
+                >
+                  Написать в поддержку
+                </a>
+              ) : null}
             </div>
             <p className={styles.contactHint}>Обычно отвечаем в течение суток</p>
           </div>
