@@ -16,11 +16,17 @@ const registerSchema = z
   .object({
     name: z.string().min(2, "Имя должно быть минимум 2 символа"),
     phone: z.string().min(10, "Введите полный номер телефона"),
-    password: z.string().min(6, "Пароль должен быть минимум 6 символов"),
+    password: z.string().min(8, "Пароль должен быть минимум 8 символов"),
     confirmPassword: z.string(),
     cityId: z.string().min(1, "Выберите город"),
     termsAccepted: z.boolean().refine(val => val === true, {
       message: "Вы должны принять пользовательское соглашение",
+    }),
+    privacyAccepted: z.boolean().refine(val => val === true, {
+      message: "Нужно согласие на обработку персональных данных",
+    }),
+    ageAccepted: z.boolean().refine(val => val === true, {
+      message: "Регистрация с 18 лет",
     }),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -49,6 +55,8 @@ export default function RegisterPage() {
       confirmPassword: "",
       cityId: "",
       termsAccepted: false,
+      privacyAccepted: false,
+      ageAccepted: false,
     },
   });
 
@@ -57,7 +65,7 @@ export default function RegisterPage() {
   }, [phoneValue, setFormValue]);
 
   const registerMutation = useMutation({
-    mutationFn: async (data: Omit<RegisterFormData, "confirmPassword" | "termsAccepted">) => {
+    mutationFn: async (data: Omit<RegisterFormData, "confirmPassword">) => {
       const res = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -93,6 +101,9 @@ export default function RegisterPage() {
       phone: rawPhone,
       password: data.password,
       cityId: data.cityId,
+      termsAccepted: data.termsAccepted,
+      privacyAccepted: data.privacyAccepted,
+      ageAccepted: data.ageAccepted,
     });
   };
 
@@ -201,6 +212,39 @@ export default function RegisterPage() {
                 </label>
                 {errors.termsAccepted && (
                   <span className={styles.error}>{errors.termsAccepted.message}</span>
+                )}
+              </div>
+
+              <div className={styles.checkboxField}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    {...register("privacyAccepted")}
+                  />
+                  <span>
+                    Я согласен на обработку персональных данных по{" "}
+                    <Link href="/privacy" target="_blank" className={styles.termsLink}>
+                      политике конфиденциальности
+                    </Link>
+                  </span>
+                </label>
+                {errors.privacyAccepted && (
+                  <span className={styles.error}>{errors.privacyAccepted.message}</span>
+                )}
+              </div>
+
+              <div className={styles.checkboxField}>
+                <label className={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    className={styles.checkbox}
+                    {...register("ageAccepted")}
+                  />
+                  <span>Мне есть 18 лет</span>
+                </label>
+                {errors.ageAccepted && (
+                  <span className={styles.error}>{errors.ageAccepted.message}</span>
                 )}
               </div>
 

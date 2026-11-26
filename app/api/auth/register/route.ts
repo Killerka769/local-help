@@ -4,27 +4,25 @@ import { prisma } from "@/lib/prisma";
 import { isValidName } from "@/utils/badWords";
 import { isValidPhone } from "@/utils/phoneValidation";
 import { getRateLimitKey, rateLimit } from "@/lib/rateLimit";
+import { validatePassword } from "@/lib/password";
 
 const limiter = rateLimit({ windowMs: 60 * 1000, maxRequests: 3 });
 
 export async function POST(req: NextRequest) {
-  const SUPER_ADMIN_PHONE = process.env.SUPER_ADMIN_PHONE || "";
   try {
-    // Rate limiting
     const rateKey = getRateLimitKey(req, "register");
     const { success } = limiter.check(rateKey);
-    
+
     if (!success) {
       return NextResponse.json(
         { error: "Слишком много запросов. Подождите немного." },
         { status: 429 }
       );
     }
-    
-    const body = await req.json();
-    const { name, phone, password, cityId } = body;
 
-    // Валидация полей
+    const body = await req.json();
+    const { name, phone, password, cityId, termsAccepted, privacyAccepted, ageAccepted } = body;
+
     if (!name || !phone || !password || !cityId) {
       return NextResponse.json(
         { error: "Заполните все поля" },
@@ -32,7 +30,13 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Валидация имени
+    if (termsAccepted !== true || privacyAccepted !== true || ageAccepted !== true) {
+      return NextResponse.json(
+        { error: "Нужно принять соглашение, политику конфиденциальности и подтвердить, что вам есть 18 лет" },
+        { status: 400 }
+      );
+    }
+
     const nameValidation = isValidName(name);
     if (!nameValidation.valid) {
       return NextResponse.json(
@@ -41,15 +45,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Валидация пароля
-    if (password.length < 6) {
-      return NextResponse.json(
-        { error: "Пароль должен быть минимум 6 символов" },
-        { status: 400 }
-      );
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      return NextResponse.json({ error: passwordError }, { status: 400 });
     }
 
-    // Валидация телефона (новая)
     const phoneValidation = isValidPhone(phone);
     if (!phoneValidation.valid) {
       return NextResponse.json(
@@ -58,13 +58,11 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Нормализуем телефон для сохранения в БД (единый формат: 7XXXXXXXXXX)
-    const normalizedPhone = phone.replace(/\D/g, "")
-    const finalPhone = normalizedPhone.startsWith("8") 
-      ? `7${normalizedPhone.slice(1)}` 
-      : normalizedPhone
+    const normalizedPhone = phone.replace(/\D/g, "");
+    const finalPhone = normalizedPhone.startsWith("8")
+      ? `7${normalizedPhone.slice(1)}`
+      : normalizedPhone;
 
-    // Проверяем, существует ли город
     const cityExists = await prisma.city.findUnique({
       where: { id: cityId },
     });
@@ -76,7 +74,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Проверяем, существует ли пользователь
     const existingUser = await prisma.user.findUnique({
       where: { phone: finalPhone },
     });
@@ -88,19 +85,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const role = finalPhone === SUPER_ADMIN_PHONE ? "SUPER_ADMIN" : "USER";
-
-    // Хешируем пароль
     const passwordHash = await bcrypt.hash(password, 10);
+    const acceptedAt = new Date();
 
-    // Создаём пользователя
     const user = await prisma.user.create({
       data: {
         name,
         phone: finalPhone,
         passwordHash,
         cityId,
-        role,
+        role: "USER",
+        termsAcceptedAt: acceptedAt,
+        privacyAcceptedAt: acceptedAt,
+        ageConfirmedAt: acceptedAt,
       },
       select: {
         id: true,

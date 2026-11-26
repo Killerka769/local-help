@@ -43,6 +43,9 @@ model User {
   bannedAt      DateTime? // дата блокировки
   rating      Float    @default(0)  // средний рейтинг
   sessionVersion Int @default(0) // для выхода со всех устройств
+  termsAcceptedAt   DateTime?
+  privacyAcceptedAt DateTime?
+  ageConfirmedAt    DateTime?
   reviewsFrom Review[] @relation("fromUserReviews")
   reviewsTo   Review[] @relation("toUserReviews")
   createdAt    DateTime @default(now())
