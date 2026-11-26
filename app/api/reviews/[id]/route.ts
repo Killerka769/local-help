@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { jwtVerify } from "jose";
 import { prisma } from "@/lib/prisma";
-
-const secret = new TextEncoder().encode(process.env.JWT_SECRET!);
+import { requireSuperAdmin, requireUser } from "@/lib/auth";
+import { handleRouteError, HttpError } from "@/lib/http";
+import { isValidText } from "@/utils/badWords";
 
 // PUT — редактирование отзыва (только автор)
 export async function PUT(
@@ -11,14 +11,8 @@ export async function PUT(
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
+    const authUser = await requireUser(req);
+    const userId = authUser.id;
 
     const { rating, comment } = await req.json();
 
@@ -39,6 +33,13 @@ export async function PUT(
 
     if (review.fromUserId !== userId) {
       return NextResponse.json({ error: "Нет прав" }, { status: 403 });
+    }
+
+    if (comment) {
+      const check = isValidText(comment, "Комментарий отзыва");
+      if (!check.valid) {
+        return NextResponse.json({ error: check.error }, { status: 400 });
+      }
     }
 
     const updatedReview = await prisma.review.update({
@@ -62,11 +63,7 @@ export async function PUT(
 
     return NextResponse.json({ review: updatedReview });
   } catch (error) {
-    console.error("[UPDATE_REVIEW_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[UPDATE_REVIEW_ERROR]");
   }
 }
 
@@ -77,24 +74,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const token = req.cookies.get("token")?.value;
-
-    if (!token) {
-      return NextResponse.json({ error: "Не авторизован" }, { status: 401 });
-    }
-
-    const { payload } = await jwtVerify(token, secret);
-    const userId = payload.userId as string;
-
-    // Только SUPER_ADMIN может удалять отзывы
-    const admin = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { role: true },
-    });
-
-    if (admin?.role !== "SUPER_ADMIN") {
-      return NextResponse.json({ error: "Нет прав" }, { status: 403 });
-    }
+    await requireSuperAdmin(req);
 
     const review = await prisma.review.findUnique({
       where: { id },
@@ -121,10 +101,6 @@ export async function DELETE(
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("[DELETE_REVIEW_ERROR]", error);
-    return NextResponse.json(
-      { error: "Внутренняя ошибка сервера" },
-      { status: 500 }
-    );
+    return handleRouteError(error, "[DELETE_REVIEW_ERROR]");
   }
 }
